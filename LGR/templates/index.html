@@ -19,6 +19,25 @@
     .titulo{
       padding: 10px;
     }
+
+    canvas {
+  		-moz-user-select: none;
+  		-webkit-user-select: none;
+  		-ms-user-select: none;
+  	}
+  	.chart-container {
+  		width: 500px;
+  		margin-left: 40px;
+  		margin-right: 40px;
+  		margin-bottom: 40px;
+  	}
+  	.container {
+  		display: flex;
+  		flex-direction: row;
+  		flex-wrap: wrap;
+  		justify-content: center;
+  	}
+	</style>
     </style>
 </head>
 
@@ -50,9 +69,10 @@
 
 
 
-  <div >
-    <canvas id="myChart" ></canvas>
-  </div>
+
+
+  <div class="container">
+	</div>
 
   <script>
     var str = "How are you doing today?";
@@ -60,6 +80,7 @@
     console.log(res[1]);
     xa = {{a|tojson|safe}};
     ya = {{b|tojson|safe}};
+    console.log(ya);
     var c = [];
     for (var i = 0; i < xa.length; i++) {
       var obj = {x:xa[i],y:ya[i]};
@@ -67,49 +88,86 @@
 
     }
 
-    var ctx = document.getElementById("myChart").getContext('2d');
-    var scatterChart = new Chart(ctx, {
-    type: 'line',
+    xent = {{xi|tojson|safe}};
+    yent = {{yi|tojson|safe}};
+    var tiempoEntrada = [];
+    for (var i = 0; i < xa.length; i++) {
+      var obj = {x:xent[i],y:yent[i]};
+      tiempoEntrada.push(obj);
 
-    data: {
-        datasets: [{
-            label: 'Respuesta en tiempo',
-            fill: false,
-            backgroundColor: 'rgb(255, 99, 132)',
-            borderColor: 'rgb(255, 99, 132)',
-            data: c
-        }]
-    },
-    options: {
-      layout: {
-            padding: {
-                left: 50,
-                right: 50,
-                top: 50,
-                bottom: 120
-            }
-        },
-        responsive: true,
-				title: {
-					display: true,
-					text: 'RT'
-				},
-				tooltips: {
-					mode: 'index',
-					intersect: false,
-				},
-				hover: {
-					mode: 'nearest',
-					intersect: true
-				},
-        scales: {
-            xAxes: [{
-                type: 'linear',
-                position: 'bottom'
-            }]
-        }
     }
-});
+
+    function setPlot(features){
+      return{
+        type : 'line',
+        data : {
+          datasets: [{
+            data: features.data,
+            label: features.label,
+            borderColor: features.color,
+            backgroundColor: features.color,
+            fill: false,
+          }]
+        },
+        options:{
+          responsive: true,
+          title:{
+            display: true,
+            text: features.label
+          },
+          scales: {
+              xAxes: [{
+                  type: 'linear',
+                  position: 'bottom'
+              }]
+          }
+        }
+
+        };
+      }
+
+      window.onload = function() {
+        var container = document.querySelector('.container');
+
+
+
+        var plots = [{
+          steppedLine: false,
+          label: 'Respuesta en tiempo con controlador',
+          color: 'rgb(255, 99, 132)',
+          data: c
+        }, {
+          steppedLine: false,
+          label: 'Respuesta en tiempo',
+          color: 'rgb(54, 162, 235)',
+          data: tiempoEntrada
+        }, {
+          steppedLine: false,
+          label: 'LGR planta',
+          color: 'rgb(75, 192, 192)',
+          data: c
+        }, {
+          steppedLine: false,
+          label: 'LGR con controlador',
+          color: 'rgb(255, 205, 86)',
+          data: c
+        }];
+
+        plots.forEach(function(details) {
+          var div = document.createElement('div');
+          div.classList.add('chart-container');
+
+          var canvas = document.createElement('canvas');
+          div.appendChild(canvas);
+          container.appendChild(div);
+
+          var ctx = canvas.getContext('2d');
+          var config = setPlot(details);
+          new Chart(ctx, config);
+        });
+      };
+
+
   </script>
 
 
