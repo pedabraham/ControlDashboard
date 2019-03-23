@@ -21,7 +21,7 @@ def mod(n):
     return np.sqrt(np.real(n)**2 + np.imag(n)**2)
 
 
-def controlador(G, accion, PoloD):
+def controladorByLGR(G, accion, PoloD):
     Tin, yin = control.step_response(G / (G + 1))
     rlistI, klistI = control.root_locus(G,Plot=False)
     PD = control.TransferFunction([1], [1])
@@ -104,6 +104,58 @@ def controlador(G, accion, PoloD):
         print("No se tiene definicion de la accion de control deseada; las acciones de control definidas son I, P, PI, PD y PID")
     return(Tout, yout, sal,Tin,yin,rlistI,rlistO)
 
+def controladorByFreq(accion,planta,tr,fase):
+  planta = planta.minreal()
+  Tin, yin = control.step_response(planta/(planta+1))
+  magIn, phaseIn, omegaIn = control.bode(planta,Plot=False)
+  PD = control.TransferFunction([1],[1])
+  PI = control.TransferFunction([1],[1,0])
+  PID = control.TransferFunction([1,5],[1,0])
+  if accion == "PD":
+        G = planta * PD
+  elif accion == "PI" or accion == "I":
+        G = planta * PI
+  elif accion == "PID":
+        G = planta * PID
+  G = G.minreal()
+  wc = 1/tr
+  faseR = (fase/180)*np.pi
+  tfgf = control.TransferFunction([1],[1]) #transfer function gain finder
+  for zero in G.zero():
+      tfp = control.TransferFunction([1],[1,-1*zero])#transfer funtion of prube
+      tfgf = tfgf * tfp
+  tfg = G * tfgf
+  gain = tfg.num[0][0][0]
+  angP = (sum(np.arctan(wc/(-1*np.array(list(filter(lambda x: x < 0, G.pole()))))))+
+    0.5*np.pi*len(list(filter(lambda x: x == 0, G.pole()))))
+  angZ = (sum(np.arctan(wc/(-1*np.array(list(filter(lambda x: x < 0, G.zero()))))))+
+      0.5*np.pi*len(list(filter(lambda x: x == 0, G.zero()))))
+  wpd = wc/(np.tan(faseR-np.pi+angP-angZ))
+  td = 1 /wpd
+  kp = (((np.prod(np.sqrt((wc/(-1*np.array(list(filter(lambda x: x < 0, G.pole())))))**2+1)))/
+      (np.prod(np.sqrt((wc/(-1*np.array(list(filter(lambda x: x < 0, np.append(G.zero(),wpd)))))**2+1)))))*
+        (np.prod(-1*np.array(list(filter(lambda x: x < 0, G.pole()))))/
+         (np.prod(-1*np.array(list(filter(lambda x: x < 0, G.zero()))))*gain)))
+  ti = td
+  TdPID = 1 / ((wc/wpd) +(-1* PID.zero()))
+  TiPID = 1 / ((wc/wpd) * (-1*PID.zero()) * TdPID)
+  KP_pid = kp/TdPID
+  Gc = kp * control.TransferFunction([wc/wpd,1],[1])
+  Tout, yout = control.step_response(G*Gc/(G*Gc+1))
+  magOut, phaseOut, omegaOut = control.bode(G*Gc,Plot=False)
+  if accion == "PD":
+        sal = " kp= " + str(kp) + " Td= " + str(td)
+        print(sal)
+  elif accion == "PID":
+        sal = (" kp= " + str(Kp_pid) +
+               " Td= " + str(TdPID) + " Ti= " + str(TiPID))
+        print(sal)
+  elif accion == "PI":
+        sal = (" kp= " + str(kp) + " Ti= " + str(ti))
+        print(sal)
+  else:
+        print("No se tiene definicion de la accion de control deseada; las acciones de control definidas son I, P, PI, PD y PID")
+  return sal
 
 app = Flask(__name__)
 
@@ -125,11 +177,11 @@ def index():
         accion = request.form['action']
         Ta = request.form['ta']
         Mp = request.form['mp']
-        #respt = controlador(GPlanta, accion, -2 + 2.5j)
+        #respt = controladorByLGR(GPlanta, accion, -2 + 2.5j)
         if float(Mp)>0 and float(Ta)>0:
-            to,yo,sal,ti,yi,rI,rO = controlador(GPlanta, accion, poloDominante(float(Mp),float(Ta)))
+            to,yo,sal,ti,yi,rI,rO = controladorByLGR(GPlanta, accion, poloDominante(float(Mp),float(Ta)))
         else:
-            to,yo,sal,ti,yi,rI,rO = controlador(GPlanta, accion, -2 + 2.5j) # NOTE: No hay tiempos en 0 o menores por lo que solo se ponen unos polos dominantes de referencia
+            to,yo,sal,ti,yi,rI,rO = controladorByLGR(GPlanta, accion, -2 + 2.5j) # NOTE: No hay tiempos en 0 o menores por lo que solo se ponen unos polos dominantes de referencia
 
         rI  =   list(zip(*rI))
         realI = np.real(rI)

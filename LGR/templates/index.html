@@ -74,18 +74,10 @@
 	</div>
 
   <script>
-    var str = "How are you doing today?";
-    var res = str.split("o");
-    console.log(res[1]);
-
-
-
 
     function setPlot(features){
       var Data = features.Yset;
-
       var XData = features.Xset;
-      console.log(features);
       var sets = [];
         for (var ids = 0; ids < Data.length; ids++){
           let dataSet = Data[ids];
@@ -108,7 +100,7 @@
           };
           sets.push(plot);
         }
-      console.log(sets);
+
       return{
           type : 'line',
           data : {
@@ -133,8 +125,6 @@
 
       window.onload = function() {
         var container = document.querySelector('.container');
-
-
 
         var plots = [{
           steppedLine: false,
