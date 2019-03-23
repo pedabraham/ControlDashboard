@@ -23,6 +23,7 @@ def mod(n):
 
 def controlador(G, accion, PoloD):
     Tin, yin = control.step_response(G / (G + 1))
+    rlistI, klistI = control.root_locus(G,Plot=False)
     PD = control.TransferFunction([1], [1])
     PI = control.TransferFunction([1], [1, 0])
     PID = control.TransferFunction([1, 9.37], [1, 0])
@@ -77,6 +78,7 @@ def controlador(G, accion, PoloD):
 
     GcwK = GcwK * k
     Tout, yout = control.step_response(GcwK * G / (GcwK * G + 1))
+    rlistO, klistO = control.root_locus(GcwK * G,Plot=False)
     # plt.plot(T,yout)
 
     # plt.show()
@@ -100,7 +102,7 @@ def controlador(G, accion, PoloD):
         print(sal)
     else:
         print("No se tiene definicion de la accion de control deseada; las acciones de control definidas son I, P, PI, PD y PID")
-    return(Tout, yout, sal,Tin,yin)
+    return(Tout, yout, sal,Tin,yin,rlistI,rlistO)
 
 
 app = Flask(__name__)
@@ -125,20 +127,25 @@ def index():
         Mp = request.form['mp']
         #respt = controlador(GPlanta, accion, -2 + 2.5j)
         if float(Mp)>0 and float(Ta)>0:
-            to,yo,sal,xi,yi = controlador(GPlanta, accion, poloDominante(float(Mp),float(Ta)))
+            to,yo,sal,ti,yi,rI,rO = controlador(GPlanta, accion, poloDominante(float(Mp),float(Ta)))
         else:
-            to,yo,sal,xi,yi = controlador(GPlanta, accion, -2 + 2.5j) # NOTE: No hay tiempos en 0 o menores por lo que solo se ponen unos polos dominantes de referencia
+            to,yo,sal,ti,yi,rI,rO = controlador(GPlanta, accion, -2 + 2.5j) # NOTE: No hay tiempos en 0 o menores por lo que solo se ponen unos polos dominantes de referencia
 
-
+        rI  =   list(zip(*rI))
+        realI = np.real(rI)
+        imagI = np.imag(rI)
+        rO  =   list(zip(*rO))
+        realO = np.real(rO)
+        imagO = np.imag(rO)
         #respuesta = "request.form['vel']"
         #respuesta2 = request.form['u']
         # print(GPlanta)
 
-        return render_template('index.html', ta=Ta, mp=Mp, a=to.tolist(), b=yo.tolist(), planta=GPlantaStrInput, constantes=sal,
-         xi = xi.tolist(),yi=yi.tolist())
+        return render_template('index.html', ta=Ta, mp=Mp, to=[to.tolist()], yo=[yo.tolist()], planta=GPlantaStrInput, constantes=sal,
+         ti = [ti.tolist()],yi=[yi.tolist()],realI=realI.tolist(),imagI=imagI.tolist(),realO=realO.tolist(),imagO=imagO.tolist())
     else:
-        return render_template('index.html', ta='0.1', mp='9', a=[1, 2, 3], b=[1, 0, 3], planta='1/1,9.21,19.89,0', constantes="",
-        xi = [1,1.5,2],yi=[3,6,7])
+        return render_template('index.html', ta='0.1', mp='9', to=[[1, 2, 3]], yo=[[1, 0, 3]], planta='1/1,9.21,19.89,0', constantes="",
+        ti = [[1,1.5,2]],yi=[[3,6,7]], realI=[[2,3,1],[4,2,3],[9,6,2]],imagI=[[4,5,3],[4,8,9],[3,1,0]],realO = [[1,3]],imagO=[[4,5]])
 
         # print(len(velocidad))
         # if len(GP) > 0:

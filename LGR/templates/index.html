@@ -38,7 +38,6 @@
   		justify-content: center;
   	}
 	</style>
-    </style>
 </head>
 
 <body>
@@ -78,53 +77,59 @@
     var str = "How are you doing today?";
     var res = str.split("o");
     console.log(res[1]);
-    xa = {{a|tojson|safe}};
-    ya = {{b|tojson|safe}};
-    console.log(ya);
-    var c = [];
-    for (var i = 0; i < xa.length; i++) {
-      var obj = {x:xa[i],y:ya[i]};
-      c.push(obj);
 
-    }
 
-    xent = {{xi|tojson|safe}};
-    yent = {{yi|tojson|safe}};
-    var tiempoEntrada = [];
-    for (var i = 0; i < xa.length; i++) {
-      var obj = {x:xent[i],y:yent[i]};
-      tiempoEntrada.push(obj);
 
-    }
 
     function setPlot(features){
-      return{
-        type : 'line',
-        data : {
-          datasets: [{
-            data: features.data,
-            label: features.label,
-            borderColor: features.color,
-            backgroundColor: features.color,
-            fill: false,
-          }]
-        },
-        options:{
-          responsive: true,
-          title:{
-            display: true,
-            text: features.label
-          },
-          scales: {
-              xAxes: [{
-                  type: 'linear',
-                  position: 'bottom'
-              }]
-          }
-        }
+      var Data = features.Yset;
 
-        };
-      }
+      var XData = features.Xset;
+      console.log(features);
+      var sets = [];
+        for (var ids = 0; ids < Data.length; ids++){
+          let dataSet = Data[ids];
+          let Xset = XData[ids];
+          var dataWFormat = [];
+          for (var i = 0; i < dataSet.length; i++) {
+            var obj = {x:Xset[i],y:dataSet[i]};
+            dataWFormat.push(obj);
+          }
+          var color = features.color;
+          if(ids>0){
+            color = 'rgb('+(90*ids).toString()+','+ (100*ids).toString()+','+ (70*ids).toString()+')';
+          }
+          var plot = {
+            data: dataWFormat,
+            label: features.label,
+            borderColor: color,
+            backgroundColor: color,
+            fill: false
+          };
+          sets.push(plot);
+        }
+      console.log(sets);
+      return{
+          type : 'line',
+          data : {
+            datasets: sets
+          },
+          options:{
+            responsive: true,
+            title:{
+              display: true,
+              text: features.label
+            },
+            scales: {
+                xAxes: [{
+                    type: 'linear',
+                    position: 'bottom'
+                }]
+            }
+          }
+
+          };
+    }
 
       window.onload = function() {
         var container = document.querySelector('.container');
@@ -133,24 +138,28 @@
 
         var plots = [{
           steppedLine: false,
-          label: 'Respuesta en tiempo con controlador',
+          label: 'Respuesta en tiempo ',
           color: 'rgb(255, 99, 132)',
-          data: c
+          Yset: {{yi|tojson|safe}},
+          Xset: {{ti|tojson|safe}},
         }, {
           steppedLine: false,
-          label: 'Respuesta en tiempo',
+          label: 'Respuesta en tiempo con controlador',
           color: 'rgb(54, 162, 235)',
-          data: tiempoEntrada
+          Yset: {{yo|tojson|safe}},
+          Xset: {{to|tojson|safe}},
         }, {
           steppedLine: false,
           label: 'LGR planta',
           color: 'rgb(75, 192, 192)',
-          data: c
+          Yset: {{imagI|tojson|safe}},
+          Xset: {{realI|tojson|safe}},
         }, {
           steppedLine: false,
           label: 'LGR con controlador',
           color: 'rgb(255, 205, 86)',
-          data: c
+          Yset: {{imagO|tojson|safe}},
+          Xset: {{realO|tojson|safe}},
         }];
 
         plots.forEach(function(details) {
