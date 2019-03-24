@@ -7,7 +7,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.min.js"></script>
   <link href="https://fonts.googleapis.com/css?family=Major+Mono+Display" rel="stylesheet">
   <meta charset="utf-8">
-  <title>LGR</title>
+  <title>ControlMaker</title>
   <style media="screen">
     body{
         padding-left:  30px;
@@ -19,14 +19,16 @@
     .titulo{
       padding: 10px;
     }
-
+    nav{
+      padding-top: 10px;
+    }
     canvas {
   		-moz-user-select: none;
   		-webkit-user-select: none;
   		-ms-user-select: none;
   	}
   	.chart-container {
-  		width: 500px;
+  		width: 600px;
   		margin-left: 40px;
   		margin-right: 40px;
   		margin-bottom: 40px;
@@ -37,10 +39,25 @@
   		flex-wrap: wrap;
   		justify-content: center;
   	}
+    a:link {
+      color: #FF6383;
+      background-color: transparent;
+      text-decoration: none;
+    }
+
+    a:visited {
+      color: #FF6383;
+      background-color: transparent;
+      text-decoration: none;
+    }
 	</style>
 </head>
 
 <body>
+
+  <nav>
+    <a href="/freq">Frecuencia</a>
+  </nav>
 
 
   <div class="titulo">
@@ -54,8 +71,8 @@
     Ta: <input type="text" name="ta" value={{ta}}>
     <br>
     <br>
-    <input type="radio" name="action" value="PD" checked>PD <br>
-    <input type="radio" name="action" value="PID">PID <br>
+    <input type="radio" name="action" value="PD" checked>PD
+    <input type="radio" name="action" value="PID">PID
     <input type="radio" name="action" value="PI">PI <br>
     <br>
 
@@ -119,8 +136,7 @@
                 }]
             }
           }
-
-          };
+        };
     }
 
       window.onload = function() {

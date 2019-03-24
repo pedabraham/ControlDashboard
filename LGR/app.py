@@ -104,7 +104,7 @@ def controladorByLGR(G, accion, PoloD):
         print("No se tiene definicion de la accion de control deseada; las acciones de control definidas son I, P, PI, PD y PID")
     return(Tout, yout, sal,Tin,yin,rlistI,rlistO)
 
-def controladorByFreq(accion,planta,tr,fase):
+def controladorByFreq(planta,accion,tr,fase):
   planta = planta.minreal()
   Tin, yin = control.step_response(planta/(planta+1))
   magIn, phaseIn, omegaIn = control.bode(planta,Plot=False)
@@ -147,7 +147,7 @@ def controladorByFreq(accion,planta,tr,fase):
         sal = " kp= " + str(kp) + " Td= " + str(td)
         print(sal)
   elif accion == "PID":
-        sal = (" kp= " + str(Kp_pid) +
+        sal = (" kp= " + str(KP_pid) +
                " Td= " + str(TdPID) + " Ti= " + str(TiPID))
         print(sal)
   elif accion == "PI":
@@ -155,7 +155,7 @@ def controladorByFreq(accion,planta,tr,fase):
         print(sal)
   else:
         print("No se tiene definicion de la accion de control deseada; las acciones de control definidas son I, P, PI, PD y PID")
-  return sal
+  return (sal,Tin, yin,Tout, yout)
 
 app = Flask(__name__)
 
@@ -207,7 +207,41 @@ def index():
         #x = int(velocidad)
 
         #salidaHtml = str(velocidad)
+@app.route('/freq', methods=['GET','POST'])
+def freq():
+    if request.method == 'POST':
+        # Then get the data from the form
 
+        GPlantaStrInput = request.form['G']
+        GPlantaStr = GPlantaStrInput.split("/")
+        num = [float(i) for i in GPlantaStr[0].split(',')]
+        if len(GPlantaStr) >= 2:
+            den = [float(i) for i in GPlantaStr[1].split(',')]
+        else:
+            den = [1.0]
+        GPlanta = control.TransferFunction(num, den)
+        accion = request.form['action']
+        tr = request.form['tr']
+        fase = request.form['fase']
+        #respt = controladorByLGR(GPlanta, accion, -2 + 2.5j)
+        if float(tr)>0 and float(fase)>0:
+            constantes,Tin, yin,Tout, yout = controladorByFreq(GPlanta, accion, float(tr),float(fase))
+        else:
+            constantes,Tin, yin,Tout, yout = controladorByFreq(GPlanta, accion, 5,6) # NOTE: No hay tiempos en 0 o menores por lo que solo se ponen unos polos dominantes de referencia
+
+        """rI  =   list(zip(*rI))
+        realI = np.real(rI)
+        imagI = np.imag(rI)
+        rO  =   list(zip(*rO))
+        realO = np.real(rO)
+        imagO = np.imag(rO)"""
+        #respuesta = "request.form['vel']"
+        #respuesta2 = request.form['u']
+        # print(GPlanta)
+
+        return render_template('freq.html', planta=GPlantaStrInput, tr=tr, fase=fase,constantes=constantes,Tin=[Tin.tolist()], yin=[yin.tolist()],Tout=[Tout.tolist()], yout=[yout.tolist()])
+    else:
+        return render_template('freq.html', planta='1/1,9.21,19.89,0', tr='8', fase='60',constantes="",Tin=[[5,2]], yin=[[6,3]],Tout=[[7,4,1],[6,9]], yout=[[5,2,9],[7.89,5]])
 
 if __name__ == '__main__':
     app.run(debug=True)

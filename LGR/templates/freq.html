@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Major+Mono+Display" rel="stylesheet">
+    <title>ControlMaker</title>
+    <style media="screen">
+      body{
+          padding-left:  30px;
+          padding-right: 30px;
+          font-family: 'Major Mono Display', monospace;
+          background-color: #272C34;
+          color: white;
+        }
+      .titulo{
+        padding: 10px;
+      }
+      .chart-container {
+    		width: 600px;
+    		margin-left: 40px;
+    		margin-right: 40px;
+    		margin-bottom: 40px;
+    	}
+    	.container {
+    		display: flex;
+    		flex-direction: row;
+    		flex-wrap: wrap;
+    		justify-content: center;
+    	}
+      nav{
+        padding-top:10px;
+      }
+      a:link {
+        color: #FF6383;
+        background-color: transparent;
+        text-decoration: none;
+      }
+
+      a:visited {
+        color: #FF6383;
+        background-color: transparent;
+        text-decoration: none;
+      }
+
+    </style>
+  </head>
+  <body>
+    <nav>
+      <right><a href="/">LGR</a></right>
+    </nav>
+
+    <div class="titulo">
+      <h1>Frecuencia</h1>
+    </div>
+
+    <form class="" method="post">
+      G: <input type="text" name="G" value={{planta}}>
+      Tr: <input type="text" name="tr" value={{tr}}>
+      Fase: <input type="text" name="fase" value={{fase}}>
+      <br>
+      <br>
+      <input type="radio" name="action" value="PD" checked>PD
+      <input type="radio" name="action" value="PID">PID
+      <input type="radio" name="action" value="PI">PI <br>
+      <br>
+
+      <button type="submit" name="button">subir</button>
+    </form>
+
+    <div class="">
+      <h3>{{constantes}}</h3>
+    </div>
+
+    <div class="container">
+    </div>
+
+    <script>
+
+      function setPlot(features){
+        var Data = features.Yset;
+        var XData = features.Xset;
+        var sets = [];
+          for (var ids = 0; ids < Data.length; ids++){
+            let dataSet = Data[ids];
+            let Xset = XData[ids];
+            var dataWFormat = [];
+            for (var i = 0; i < dataSet.length; i++) {
+              var obj = {x:Xset[i],y:dataSet[i]};
+              dataWFormat.push(obj);
+            }
+            var color = features.color;
+            if(ids>0){
+              color = 'rgb('+(90*ids).toString()+','+ (100*ids).toString()+','+ (70*ids).toString()+')';
+            }
+            var plot = {
+              data: dataWFormat,
+              label: features.label,
+              borderColor: color,
+              backgroundColor: color,
+              fill: false
+            };
+            sets.push(plot);
+          }
+
+        return{
+            type : 'line',
+            data : {
+              datasets: sets
+            },
+            options:{
+              responsive: true,
+              title:{
+                display: true,
+                text: features.label
+              },
+              scales: {
+                  xAxes: [{
+                      type: 'linear',
+                      position: 'bottom'
+                  }]
+              }
+            }
+          };
+      }
+
+        window.onload = function() {
+          var container = document.querySelector('.container');
+
+          var plots = [{
+            steppedLine: false,
+            label: 'Respuesta en tiempo ',
+            color: 'rgb(255, 99, 132)',
+            Yset: {{yin|tojson|safe}},
+            Xset: {{Tin|tojson|safe}},
+          }, {
+            steppedLine: false,
+            label: 'Respuesta en tiempo con controlador',
+            color: 'rgb(54, 162, 235)',
+            Yset: {{yout|tojson|safe}},
+            Xset: {{Tout|tojson|safe}},
+          }];
+
+          plots.forEach(function(details) {
+            var div = document.createElement('div');
+            div.classList.add('chart-container');
+
+            var canvas = document.createElement('canvas');
+            div.appendChild(canvas);
+            container.appendChild(div);
+
+            var ctx = canvas.getContext('2d');
+            var config = setPlot(details);
+            new Chart(ctx, config);
+          });
+        };
+
+
+    </script>
+
+
+
+
+  </body>
+</html>
