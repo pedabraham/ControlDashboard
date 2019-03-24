@@ -159,12 +159,18 @@ def controladorByFreq(planta,accion,tr,fase):
 
 app = Flask(__name__)
 
+GPlantaStrInput = '1/1,9.21,19.89,0'
+Mp = '9'
+Ta='0.1'
+tr = '8'
+fase = '60'
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
         # Then get the data from the form
 
+        global GPlantaStrInput,Mp,Ta
         GPlantaStrInput = request.form['G']
         GPlantaStr = GPlantaStrInput.split("/")
 
@@ -196,7 +202,7 @@ def index():
         return render_template('index.html', ta=Ta, mp=Mp, to=[to.tolist()], yo=[yo.tolist()], planta=GPlantaStrInput, constantes=sal,
          ti = [ti.tolist()],yi=[yi.tolist()],realI=realI.tolist(),imagI=imagI.tolist(),realO=realO.tolist(),imagO=imagO.tolist())
     else:
-        return render_template('index.html', ta='0.1', mp='9', to=[[1, 2, 3]], yo=[[1, 0, 3]], planta='1/1,9.21,19.89,0', constantes="",
+        return render_template('index.html', ta=Ta, mp=Mp, to=[[1, 2, 3]], yo=[[1, 0, 3]], planta=GPlantaStrInput, constantes="",
         ti = [[1,1.5,2]],yi=[[3,6,7]], realI=[[2,3,1],[4,2,3],[9,6,2]],imagI=[[4,5,3],[4,8,9],[3,1,0]],realO = [[1,3]],imagO=[[4,5]])
 
         # print(len(velocidad))
@@ -211,7 +217,7 @@ def index():
 def freq():
     if request.method == 'POST':
         # Then get the data from the form
-
+        global GPlantaStrInput,tr,fase
         GPlantaStrInput = request.form['G']
         GPlantaStr = GPlantaStrInput.split("/")
         num = [float(i) for i in GPlantaStr[0].split(',')]
@@ -241,7 +247,7 @@ def freq():
 
         return render_template('freq.html', planta=GPlantaStrInput, tr=tr, fase=fase,constantes=constantes,Tin=[Tin.tolist()], yin=[yin.tolist()],Tout=[Tout.tolist()], yout=[yout.tolist()])
     else:
-        return render_template('freq.html', planta='1/1,9.21,19.89,0', tr='8', fase='60',constantes="",Tin=[[5,2]], yin=[[6,3]],Tout=[[7,4,1],[6,9]], yout=[[5,2,9],[7.89,5]])
+        return render_template('freq.html', planta=GPlantaStrInput, tr=tr, fase=fase,constantes="",Tin=[[5,2]], yin=[[6,3]],Tout=[[7,4,1],[6,9]], yout=[[5,2,9],[7.89,5]])
 
 if __name__ == '__main__':
     app.run(debug=True)
