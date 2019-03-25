@@ -83,26 +83,49 @@ def controladorByLGR(G, accion, PoloD):
 
     # plt.show()
 
+
     if accion == "PD":
         Td = 1 / (-distanceNewZero)
         Kp = k / Td
         sal = "k= " + str(k) + " kp= " + str(Kp) + " Td= " + str(Td)
+        constantes = {
+            'ti' : 0,
+            'td' : Td,
+            'kp' : Kp
+        }
         print(sal)
     elif accion == "PID":
-        Td = 1 / (-distanceNewZero - PID.zero())
+        Td = (1 / (-distanceNewZero - PID.zero()))[0]
         Kp = k / Td
-        Ti = 1 / (distanceNewZero * PID.zero() * Td)
+        Ti = (1 / (distanceNewZero * PID.zero() * Td))[0]
         sal = ("k= " + str(k) + " kp= " + str(Kp) +
                " Td= " + str(Td) + " Ti= " + str(Ti))
         print(sal)
+        constantes = {
+            'ti' : Ti,
+            'td' : Td,
+            'kp' : Kp
+        }
+
     elif accion == "PI":
         Ti = 1 / (-distanceNewZero)
         Kp = k / Ti
         sal = ("k= " + str(k) + " kp= " + str(Kp) + " Ti= " + str(Ti))
         print(sal)
+        constantes = {
+            'ti' : Ti,
+            'td' : 0,
+            'kp' : Kp
+        }
+
     else:
         print("No se tiene definicion de la accion de control deseada; las acciones de control definidas son I, P, PI, PD y PID")
-    return(Tout, yout, sal,Tin,yin,rlistI,rlistO)
+        constantes = {
+            'ti' : 0,
+            'td' : 0,
+            'kp' : 0
+        }
+    return(Tout, yout, sal,Tin,yin,rlistI,rlistO,constantes)
 
 def controladorByFreq(planta,accion,tr,fase):
   planta = planta.minreal()
@@ -157,6 +180,57 @@ def controladorByFreq(planta,accion,tr,fase):
         print("No se tiene definicion de la accion de control deseada; las acciones de control definidas son I, P, PI, PD y PID")
   return (sal,Tin, yin,Tout, yout)
 
+def setValoresEqDif(constantes,accion,T):
+    if accion == "PD":
+        Td = constantes['td']
+        Kp = constantes['kp']
+        print(Td)
+        print(Kp)
+
+
+        a0 = (Kp + Td/T)
+        a1 = -Td/T
+        a2 = 0
+        b0 = 0
+        print('ved')
+        print(a0)
+
+        return( {
+            'a0': a0,
+            'a1': a1,
+            'a2': a2,
+            'b0': 'io'
+        })
+
+    elif accion == "PID":
+        Td = constantes['td']
+        Kp = constantes['kp']
+        Ti = constantes['ti']
+        return ({
+            'a0': Kp+Ti*T+Td/T,
+            'a1': -Kp+2*Td/T,
+            'a2': Td/T,
+            'b0': 1
+        })
+    elif accion == "PI":
+        Kp = constantes['kp']
+        Ti = constantes['ti']
+        return  ({
+            'a0': Kp,
+            'a1': Ti*T-Kp,
+            'a2': 0,
+            'b0': 1
+        })
+    else:
+        return ({
+            'a0': 0,
+            'a1': 0,
+            'a2': 0,
+            'b0': 0
+        })
+    print(valoresEqDif)
+    return valoresEqDif
+
 app = Flask(__name__)
 
 GPlantaStrInput = '1/1,9.21,19.89,0'
@@ -164,13 +238,28 @@ Mp = '9'
 Ta='0.1'
 tr = '8'
 fase = '60'
+accion = 'PD'
+
+valoresEqDif = {
+    'a0': 0,
+    'a1': 0,
+    'a2': 0,
+    'b0': 0,
+}
+
+constantes = {
+    'ti' : 0,
+    'td' : 0,
+    'kp' : 0
+}
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    webC = {'estado':'none'}
     if request.method == 'POST':
         # Then get the data from the form
 
-        global GPlantaStrInput,Mp,Ta
+        global GPlantaStrInput,Mp,Ta,T,constantes,accion
         GPlantaStrInput = request.form['G']
         GPlantaStr = GPlantaStrInput.split("/")
 
@@ -183,11 +272,12 @@ def index():
         accion = request.form['action']
         Ta = request.form['ta']
         Mp = request.form['mp']
+        T = 6;
         #respt = controladorByLGR(GPlanta, accion, -2 + 2.5j)
         if float(Mp)>0 and float(Ta)>0:
-            to,yo,sal,ti,yi,rI,rO = controladorByLGR(GPlanta, accion, poloDominante(float(Mp),float(Ta)))
+            to,yo,sal,ti,yi,rI,rO,constantes = controladorByLGR(GPlanta, accion, poloDominante(float(Mp),float(Ta)))
         else:
-            to,yo,sal,ti,yi,rI,rO = controladorByLGR(GPlanta, accion, -2 + 2.5j) # NOTE: No hay tiempos en 0 o menores por lo que solo se ponen unos polos dominantes de referencia
+            to,yo,sal,ti,yi,rI,rO,constantes = controladorByLGR(GPlanta, accion, -2 + 2.5j) # NOTE: No hay tiempos en 0 o menores por lo que solo se ponen unos polos dominantes de referencia
 
         rI  =   list(zip(*rI))
         realI = np.real(rI)
@@ -195,14 +285,16 @@ def index():
         rO  =   list(zip(*rO))
         realO = np.real(rO)
         imagO = np.imag(rO)
+        webC['estado']='inline'
+        print(constantes)
         #respuesta = "request.form['vel']"
         #respuesta2 = request.form['u']
         # print(GPlanta)
 
-        return render_template('index.html', ta=Ta, mp=Mp, to=[to.tolist()], yo=[yo.tolist()], planta=GPlantaStrInput, constantes=sal,
+        return render_template('index.html',estado=webC, ta=Ta, mp=Mp, to=[to.tolist()], yo=[yo.tolist()], planta=GPlantaStrInput, constantes=sal,
          ti = [ti.tolist()],yi=[yi.tolist()],realI=realI.tolist(),imagI=imagI.tolist(),realO=realO.tolist(),imagO=imagO.tolist())
     else:
-        return render_template('index.html', ta=Ta, mp=Mp, to=[[1, 2, 3]], yo=[[1, 0, 3]], planta=GPlantaStrInput, constantes="",
+        return render_template('index.html',estado=webC, ta=Ta, mp=Mp, to=[[1, 2, 3]], yo=[[1, 0, 3]], planta=GPlantaStrInput, constantes="",
         ti = [[1,1.5,2]],yi=[[3,6,7]], realI=[[2,3,1],[4,2,3],[9,6,2]],imagI=[[4,5,3],[4,8,9],[3,1,0]],realO = [[1,3]],imagO=[[4,5]])
 
         # print(len(velocidad))
@@ -248,6 +340,16 @@ def freq():
         return render_template('freq.html', planta=GPlantaStrInput, tr=tr, fase=fase,constantes=constantes,Tin=[Tin.tolist()], yin=[yin.tolist()],Tout=[Tout.tolist()], yout=[yout.tolist()])
     else:
         return render_template('freq.html', planta=GPlantaStrInput, tr=tr, fase=fase,constantes="",Tin=[[5,2]], yin=[[6,3]],Tout=[[7,4,1],[6,9]], yout=[[5,2,9],[7.89,5]])
+
+@app.route('/controlar', methods=['GET','POST'])
+def usoDeControlador():
+    global constantes,accion
+    T = 0.500
+    valoresEqDif= setValoresEqDif(constantes,accion,T)
+    print(constantes)
+    print(accion)
+    print(valoresEqDif)
+    return render_template('usoDeControlador.html', valoresEqDif=valoresEqDif)
 
 if __name__ == '__main__':
     app.run(debug=True)

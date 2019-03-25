@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <link href="https://fonts.googleapis.com/css?family=Major+Mono+Display" rel="stylesheet">
+    <title>ControlMaker</title>
+    <style media="screen">
+    body{
+        padding-left:  30px;
+        padding-right: 30px;
+        font-family: 'Major Mono Display', monospace;
+        background-color: #272C34;
+        color: white;
+      }
+    .titulo{
+      padding: 10px;
+    }
+    </style>
+  </head>
+  <body>
+    <div class="titulo">
+      <h1>Control</h1>
+    </div>
+
+
+    <form class=""  method="post">
+      Referencia
+      <input type="text" name="Referencia" value="ref">
+      <input type="submit" name="" value="Establecer">
+    </form>
+    <br>
+    <div class="" >
+      a0 = <h2 id='a0'></h2>
+      a1 = <h2 id='a1'></h2>
+      a2 = <h2 id='a2'></h2>
+      b0 = <h2 id='b0'></h2>
+
+    </div>
+
+    <script type="text/javascript">
+      valoresEqDif = {{valoresEqDif|tojson|safe}};
+      console.log(valoresEqDif);
+      document.getElementById("a0").innerHTML = valoresEqDif.a0;
+      document.getElementById("a1").innerHTML = valoresEqDif.a1;
+      document.getElementById("a2").innerHTML = valoresEqDif.a2;
+      document.getElementById("b0").innerHTML = valoresEqDif.b0;
+
+    </script>
+
+  </body>
+</html>

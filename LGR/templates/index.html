@@ -81,16 +81,23 @@
 
   <div class="">
     <h3>{{constantes}}</h3>
+    
   </div>
 
-
-
-
+  <input type="button" name="" onclick="controlU()" value="Usar controlador" id="activar" style="display:none;">
 
   <div class="container">
 	</div>
 
   <script>
+     var btn_1 = document.getElementById('activar');
+     btn_1.style.display = {{estado|tojson|safe}}.estado;
+
+     function controlU(){
+       location.replace("/controlar")
+     }
+     //document.getElementById("estado").style.display = {{estado|tojson|safe}}.estado;
+     console.log({{estado|tojson|safe}}.estado);
 
     function setPlot(features){
       var Data = features.Yset;
