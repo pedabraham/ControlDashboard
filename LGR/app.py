@@ -169,16 +169,31 @@ def controladorByFreq(planta,accion,tr,fase):
   if accion == "PD":
         sal = " kp= " + str(kp) + " Td= " + str(td)
         print(sal)
+        constantes = {
+            'ti' : 0,
+            'td' : td,
+            'kp' : kp
+        }
   elif accion == "PID":
-        sal = (" kp= " + str(KP_pid) +
-               " Td= " + str(TdPID) + " Ti= " + str(TiPID))
+        sal = (" kp= " + str(KP_pid[0]) +
+               " Td= " + str(TdPID[0]) + " Ti= " + str(TiPID[0]))
         print(sal)
+        constantes = {
+            'ti' : TiPID[0],
+            'td' : TdPID[0],
+            'kp' : KP_pid[0]
+        }
   elif accion == "PI":
         sal = (" kp= " + str(kp) + " Ti= " + str(ti))
         print(sal)
+        constantes = {
+            'ti' : ti,
+            'td' : 0,
+            'kp' : kp
+        }
   else:
         print("No se tiene definicion de la accion de control deseada; las acciones de control definidas son I, P, PI, PD y PID")
-  return (sal,Tin, yin,Tout, yout)
+  return (sal,Tin, yin,Tout, yout,constantes)
 
 def setValoresEqDif(constantes,accion,T):
     if accion == "PD":
@@ -313,9 +328,10 @@ def index():
         #salidaHtml = str(velocidad)
 @app.route('/freq', methods=['GET','POST'])
 def freq():
+    webC = {'estado':'none'}
     if request.method == 'POST':
         # Then get the data from the form
-        global GPlantaStrInput,tr,fase
+        global GPlantaStrInput,tr,fase,T,Ts
         GPlantaStrInput = request.form['G']
         GPlantaStr = GPlantaStrInput.split("/")
         num = [float(i) for i in GPlantaStr[0].split(',')]
@@ -327,11 +343,13 @@ def freq():
         accion = request.form['action']
         tr = request.form['tr']
         fase = request.form['fase']
+        Ts = request.form['ts']
+        T = float(Ts)
         #respt = controladorByLGR(GPlanta, accion, -2 + 2.5j)
         if float(tr)>0 and float(fase)>0:
-            constantes,Tin, yin,Tout, yout = controladorByFreq(GPlanta, accion, float(tr),float(fase))
+            sal,Tin, yin,Tout, yout,constantes = controladorByFreq(GPlanta, accion, float(tr),float(fase))
         else:
-            constantes,Tin, yin,Tout, yout = controladorByFreq(GPlanta, accion, 5,6) # NOTE: No hay tiempos en 0 o menores por lo que solo se ponen unos polos dominantes de referencia
+            sal,Tin, yin,Tout, yout,constantes = controladorByFreq(GPlanta, accion, 5,6) # NOTE: No hay tiempos en 0 o menores por lo que solo se ponen unos polos dominantes de referencia
 
         """rI  =   list(zip(*rI))
         realI = np.real(rI)
@@ -339,13 +357,16 @@ def freq():
         rO  =   list(zip(*rO))
         realO = np.real(rO)
         imagO = np.imag(rO)"""
+
+        valoresEqDif = setValoresEqDif(constantes,accion,T)
+        webC['estado']='inline'
         #respuesta = "request.form['vel']"
         #respuesta2 = request.form['u']
         # print(GPlanta)
 
-        return render_template('freq.html', planta=GPlantaStrInput, tr=tr, fase=fase,constantes=constantes,Tin=[Tin.tolist()], yin=[yin.tolist()],Tout=[Tout.tolist()], yout=[yout.tolist()])
+        return render_template('freq.html',ts=Ts, estado=webC, valoresEqDif=str(valoresEqDif), planta=GPlantaStrInput, tr=tr, fase=fase,constantes=sal,Tin=[Tin.tolist()], yin=[yin.tolist()],Tout=[Tout.tolist()], yout=[yout.tolist()])
     else:
-        return render_template('freq.html', planta=GPlantaStrInput, tr=tr, fase=fase,constantes="",Tin=[[5,2]], yin=[[6,3]],Tout=[[7,4,1],[6,9]], yout=[[5,2,9],[7.89,5]])
+        return render_template('freq.html',ts=Ts, estado=webC, valoresEqDif='', planta=GPlantaStrInput, tr=tr, fase=fase,constantes="",Tin=[[5,2]], yin=[[6,3]],Tout=[[7,4,1],[6,9]], yout=[[5,2,9],[7.89,5]])
 
 @app.route('/controlar', methods=['GET','POST'])
 def usoDeControlador():

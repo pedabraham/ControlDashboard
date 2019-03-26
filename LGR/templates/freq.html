@@ -8,11 +8,13 @@
     <title>ControlMaker</title>
     <style media="screen">
       body{
-          padding-left:  30px;
-          padding-right: 30px;
-          font-family: 'Major Mono Display', monospace;
-          background-color: #272C34;
-          color: white;
+        margin-left : 0;
+        margin-right : 0;
+        margin-bottom: 0;
+        padding: 0px;
+        font-family: 'Major Mono Display', monospace;
+        background-color: #272C34;
+        color: white;
         }
       .titulo{
         padding: 10px;
@@ -43,40 +45,90 @@
         background-color: transparent;
         text-decoration: none;
       }
+      .referencia{
+        background-color: #36A2EB;
+        padding-left:  30px;
+        padding-right: 30px;
+        padding-bottom: 10px;
 
+
+      }
+      .diseño{
+        padding-left:  30px;
+        padding-right: 30px;
+      }
+      .refOutside{
+        background-color: #36A2EB;
+      }
     </style>
   </head>
   <body>
-    <nav>
-      <right><a href="/">LGR</a></right>
-    </nav>
+    <div class="diseño">
 
-    <div class="titulo">
-      <h1>Frecuencia</h1>
+      <nav>
+        <right><a href="/">LGR</a></right>
+      </nav>
+
+      <div class="titulo">
+        <h1>Frecuencia</h1>
+      </div>
+
+      <form class="" method="post">
+        G: <input type="text" name="G" value={{planta}}>
+        Tr: <input type="text" name="tr" value={{tr}}>
+        Fase: <input type="text" name="fase" value={{fase}}>
+        Ts: <input type="text" name="ts" value="{{ts}}">
+        <br>
+        <br>
+        <input type="radio" name="action" value="PD" checked>PD
+        <input type="radio" name="action" value="PID">PID
+        <input type="radio" name="action" value="PI">PI <br>
+        <br>
+
+        <button type="submit" name="button">Diseñar</button>
+      </form>
+
+      <div class="">
+        <h3>{{constantes}}</h3>
+        <h6>{{valoresEqDif}}</h6>
+      </div>
+
+      <div class="container">
+      </div>
+
+      <div class="">
+        <center>
+        <input type="button" name="" onclick="controlUself()" value="Usar controlador" id="activar2" style="display:none;">
+        <br>
+      </center>
+      </div>
+      <br>
     </div>
 
-    <form class="" method="post">
-      G: <input type="text" name="G" value={{planta}}>
-      Tr: <input type="text" name="tr" value={{tr}}>
-      Fase: <input type="text" name="fase" value={{fase}}>
-      <br>
-      <br>
-      <input type="radio" name="action" value="PD" checked>PD
-      <input type="radio" name="action" value="PID">PID
-      <input type="radio" name="action" value="PI">PI <br>
-      <br>
+    <div class="refOutside" id="refOutside">
+      <center>
+        <div class="referencia" id='referencia' style="display:none;">
+          <br>
+          Referencia= <input type="text" name="refControl" value="0" ><br><br>
+          <input type="button" name="" value="Establecer" class="but1" >
+          <br>
+          <br>
 
-      <button type="submit" name="button">subir</button>
-    </form>
 
-    <div class="">
-      <h3>{{constantes}}</h3>
-    </div>
-
-    <div class="container">
+        </div>
+      </center>
     </div>
 
     <script>
+
+    document.getElementById('activar2').style.display = {{estado|tojson|safe}}.estado;
+    function controlUself(){
+      console.log('90');
+      document.getElementById('referencia').style.display = 'inline';
+      location.replace("/freq#refOutside");
+      //document.getElementById('refOutside').style.padding-top = '30px';
+      //document.getElementById('referencia').style.margin-right = 0;
+    }
 
       function setPlot(features){
         var Data = features.Yset;
