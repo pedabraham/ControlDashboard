@@ -199,7 +199,7 @@ def setValoresEqDif(constantes,accion,T):
             'a0': a0,
             'a1': a1,
             'a2': a2,
-            'b0': 'io'
+            'b0': 0
         })
 
     elif accion == "PID":
@@ -236,9 +236,11 @@ app = Flask(__name__)
 GPlantaStrInput = '1/1,9.21,19.89,0'
 Mp = '9'
 Ta='0.1'
+Ts = '0.05'
 tr = '8'
 fase = '60'
 accion = 'PD'
+T = 0.05
 
 valoresEqDif = {
     'a0': 0,
@@ -259,7 +261,7 @@ def index():
     if request.method == 'POST':
         # Then get the data from the form
 
-        global GPlantaStrInput,Mp,Ta,T,constantes,accion
+        global GPlantaStrInput,Mp,Ta,T,constantes,accion,Ts,valoresEqDif
         GPlantaStrInput = request.form['G']
         GPlantaStr = GPlantaStrInput.split("/")
 
@@ -272,12 +274,15 @@ def index():
         accion = request.form['action']
         Ta = request.form['ta']
         Mp = request.form['mp']
-        T = 6;
+        Ts = request.form['ts']
+
         #respt = controladorByLGR(GPlanta, accion, -2 + 2.5j)
-        if float(Mp)>0 and float(Ta)>0:
-            to,yo,sal,ti,yi,rI,rO,constantes = controladorByLGR(GPlanta, accion, poloDominante(float(Mp),float(Ta)))
-        else:
-            to,yo,sal,ti,yi,rI,rO,constantes = controladorByLGR(GPlanta, accion, -2 + 2.5j) # NOTE: No hay tiempos en 0 o menores por lo que solo se ponen unos polos dominantes de referencia
+        if len(Ta)>0 and len(Mp)>0 and len(Ts)>0:
+            T = float(Ts)
+            if float(Mp)>0 and float(Ta)>0 :
+                to,yo,sal,ti,yi,rI,rO,constantes = controladorByLGR(GPlanta, accion, poloDominante(float(Mp),float(Ta)))
+            else:
+                to,yo,sal,ti,yi,rI,rO,constantes = controladorByLGR(GPlanta, accion, -2 + 2.5j) # NOTE: No hay tiempos en 0 o menores por lo que solo se ponen unos polos dominantes de referencia
 
         rI  =   list(zip(*rI))
         realI = np.real(rI)
@@ -286,15 +291,16 @@ def index():
         realO = np.real(rO)
         imagO = np.imag(rO)
         webC['estado']='inline'
-        print(constantes)
+        valoresEqDif = setValoresEqDif(constantes,accion,T)
+        print(str(valoresEqDif))
         #respuesta = "request.form['vel']"
         #respuesta2 = request.form['u']
         # print(GPlanta)
 
-        return render_template('index.html',estado=webC, ta=Ta, mp=Mp, to=[to.tolist()], yo=[yo.tolist()], planta=GPlantaStrInput, constantes=sal,
+        return render_template('index.html',estado=webC, valoresEqDif=str(valoresEqDif), ta=Ta, mp=Mp, ts=Ts, to=[to.tolist()], yo=[yo.tolist()], planta=GPlantaStrInput, constantes=sal,
          ti = [ti.tolist()],yi=[yi.tolist()],realI=realI.tolist(),imagI=imagI.tolist(),realO=realO.tolist(),imagO=imagO.tolist())
     else:
-        return render_template('index.html',estado=webC, ta=Ta, mp=Mp, to=[[1, 2, 3]], yo=[[1, 0, 3]], planta=GPlantaStrInput, constantes="",
+        return render_template('index.html',estado=webC,valoresEqDif='', ta=Ta, mp=Mp, ts=Ts, to=[[1, 2, 3]], yo=[[1, 0, 3]], planta=GPlantaStrInput, constantes="",
         ti = [[1,1.5,2]],yi=[[3,6,7]], realI=[[2,3,1],[4,2,3],[9,6,2]],imagI=[[4,5,3],[4,8,9],[3,1,0]],realO = [[1,3]],imagO=[[4,5]])
 
         # print(len(velocidad))
@@ -344,7 +350,7 @@ def freq():
 @app.route('/controlar', methods=['GET','POST'])
 def usoDeControlador():
     global constantes,accion
-    T = 0.500
+
     valoresEqDif= setValoresEqDif(constantes,accion,T)
     print(constantes)
     print(accion)

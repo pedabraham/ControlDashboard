@@ -10,8 +10,10 @@
   <title>ControlMaker</title>
   <style media="screen">
     body{
-        padding-left:  30px;
-        padding-right: 30px;
+        margin-left : 0;
+        margin-right : 0;
+        margin-bottom: 0;
+        padding: 0px;
         font-family: 'Major Mono Display', monospace;
         background-color: #272C34;
         color: white;
@@ -21,6 +23,8 @@
     }
     nav{
       padding-top: 10px;
+      padding-left:  30px;
+      padding-right: 30px;
     }
     canvas {
   		-moz-user-select: none;
@@ -50,6 +54,29 @@
       background-color: transparent;
       text-decoration: none;
     }
+    .referencia{
+      background-color: #36A2EB;
+      padding-left:  30px;
+      padding-right: 30px;
+      padding-bottom: 10px;
+
+
+    }
+    .diseño{
+
+      padding-left:  30px;
+      padding-right: 30px;
+
+    }
+
+    .refOutside{
+
+      background-color: #36A2EB;
+
+    }
+    .but1{
+      padding: 10px;
+    }
 	</style>
 </head>
 
@@ -59,42 +86,81 @@
     <a href="/freq">Frecuencia</a>
   </nav>
 
+  <div class="diseño">
 
-  <div class="titulo">
-    <h1>Lugar geometrico <br> de las raices</h1>
 
+    <div class="titulo">
+      <h1>Lugar geometrico <br> de las raices</h1>
+
+    </div>
+
+    <form class=""  method="post">
+      G: <input type="text" name="G" value={{planta}}>
+      Mp: <input type="text" name="mp" value={{mp}}>
+      Ta: <input type="text" name="ta" value={{ta}}>
+      Ts: <input type="text" name="ts" value="{{ts}}">
+      <br>
+      <br>
+      <input type="radio" name="action" value="PD" checked>PD
+      <input type="radio" name="action" value="PID">PID
+      <input type="radio" name="action" value="PI">PI <br>
+      <br>
+
+      <button type="submit" name="button">Diseñar</button>
+    </form>
+
+    <div class="">
+      <h3>{{constantes}}</h3>
+      <h6>{{valoresEqDif}}</h6>
+    </div>
+
+    <input type="button" name="" onclick="controlU()" value="Usar controlador" id="activar" style="display:none;">
+
+    <div class="container">
+  	</div>
+
+    <div class="">
+      <center>
+      <input type="button" name="" onclick="controlUself()" value="Usar controlador" id="activar2" style="display:none;">
+      <br>
+    </center>
+    </div>
+  </div>
+  <br>
+
+
+
+  <div class="refOutside" id="refOutside">
+    <center>
+      <div class="referencia" id='referencia' style="display:none;">
+        <br>
+        Referencia= <input type="text" name="refControl" value="0" ><br><br>
+        <input type="button" name="" value="Establecer" class="but1" >
+        <br>
+        <br>
+
+
+      </div>
+    </center>
   </div>
 
-  <form class=""  method="post">
-    G: <input type="text" name="G" value={{planta}}>
-    Mp: <input type="text" name="mp" value={{mp}}>
-    Ta: <input type="text" name="ta" value={{ta}}>
-    <br>
-    <br>
-    <input type="radio" name="action" value="PD" checked>PD
-    <input type="radio" name="action" value="PID">PID
-    <input type="radio" name="action" value="PI">PI <br>
-    <br>
-
-    <button type="submit" name="button">subir</button>
-  </form>
-
-  <div class="">
-    <h3>{{constantes}}</h3>
-    
-  </div>
-
-  <input type="button" name="" onclick="controlU()" value="Usar controlador" id="activar" style="display:none;">
-
-  <div class="container">
-	</div>
 
   <script>
      var btn_1 = document.getElementById('activar');
      btn_1.style.display = {{estado|tojson|safe}}.estado;
+     document.getElementById('activar').style.display = 'none';
+     document.getElementById('activar2').style.display = {{estado|tojson|safe}}.estado;
 
      function controlU(){
-       location.replace("/controlar")
+       location.replace("/controlar");
+     }
+
+     function controlUself(){
+       console.log('90');
+       document.getElementById('referencia').style.display = 'inline';
+       location.replace("/#refOutside");
+       //document.getElementById('refOutside').style.padding-top = '30px';
+       //document.getElementById('referencia').style.margin-right = 0;
      }
      //document.getElementById("estado").style.display = {{estado|tojson|safe}}.estado;
      console.log({{estado|tojson|safe}}.estado);
