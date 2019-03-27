@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from scipy.signal import lti, step2
 from flask import Flask, render_template, request, Response
 import io
+import json
 
 
 def poloDominante(Mp1, ta):
@@ -211,10 +212,10 @@ def setValoresEqDif(constantes,accion,T):
         print(a0)
 
         return( {
-            'a0': a0,
-            'a1': a1,
-            'a2': a2,
-            'b0': 0
+            "a0": a0,
+            "a1": a1,
+            "a2": a2,
+            "b0": 0
         })
 
     elif accion == "PID":
@@ -222,26 +223,26 @@ def setValoresEqDif(constantes,accion,T):
         Kp = constantes['kp']
         Ti = constantes['ti']
         return ({
-            'a0': Kp+Ti*T+Td/T,
-            'a1': -Kp+2*Td/T,
-            'a2': Td/T,
-            'b0': 1
+            "a0": Kp+Ti*T+Td/T,
+            "a1": -Kp+2*Td/T,
+            "a2": Td/T,
+            "b0": 1
         })
     elif accion == "PI":
         Kp = constantes['kp']
         Ti = constantes['ti']
         return  ({
-            'a0': Kp,
-            'a1': Ti*T-Kp,
-            'a2': 0,
-            'b0': 1
+            "a0": Kp,
+            "a1": Ti*T-Kp,
+            "a2": 0,
+            "b0": 1
         })
     else:
         return ({
-            'a0': 0,
-            'a1': 0,
-            'a2': 0,
-            'b0': 0
+            "a0": 0,
+            "a1": 0,
+            "a2": 0,
+            "b0": 0
         })
     print(valoresEqDif)
     return valoresEqDif
@@ -265,9 +266,9 @@ valoresEqDif = {
 }
 
 constantes = {
-    'ti' : 0,
-    'td' : 0,
-    'kp' : 0
+    "ti" : 0,
+    "td" : 0,
+    "kp" : 0
 }
 
 @app.route('/', methods=['GET', 'POST'])
@@ -307,12 +308,13 @@ def index():
         imagO = np.imag(rO)
         webC['estado']='inline'
         valoresEqDif = setValoresEqDif(constantes,accion,T)
+        valoresEqDifJson = json.dumps(valoresEqDif)
         print(str(valoresEqDif))
         #respuesta = "request.form['vel']"
         #respuesta2 = request.form['u']
         # print(GPlanta)
 
-        return render_template('index.html',estado=webC, valoresEqDif=str(valoresEqDif), ta=Ta, mp=Mp, ts=Ts, to=[to.tolist()], yo=[yo.tolist()], planta=GPlantaStrInput, constantes=sal,
+        return render_template('index.html',estado=webC, valoresEqDif=valoresEqDifJson, ta=Ta, mp=Mp, ts=Ts, to=[to.tolist()], yo=[yo.tolist()], planta=GPlantaStrInput, constantes=sal,
          ti = [ti.tolist()],yi=[yi.tolist()],realI=realI.tolist(),imagI=imagI.tolist(),realO=realO.tolist(),imagO=imagO.tolist())
     else:
         return render_template('index.html',estado=webC,valoresEqDif='', ta=Ta, mp=Mp, ts=Ts, to=[[1, 2, 3]], yo=[[1, 0, 3]], planta=GPlantaStrInput, constantes="",

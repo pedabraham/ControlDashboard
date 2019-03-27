@@ -48,7 +48,6 @@
       background-color: transparent;
       text-decoration: none;
     }
-
     a:visited {
       color: #FF6383;
       background-color: transparent;
@@ -59,23 +58,40 @@
       padding-left:  30px;
       padding-right: 30px;
       padding-bottom: 10px;
-
-
     }
     .diseño{
-
       padding-left:  30px;
       padding-right: 30px;
-
     }
 
     .refOutside{
-
       background-color: #36A2EB;
-
     }
     .but1{
       padding: 10px;
+    }
+    .tooltip {
+      position: relative;
+      display: inline-block;
+      border-bottom: 1px dotted black;
+    }
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      width: 170px;
+      background-color: white;
+      color: black;
+      text-align: center;
+      border-radius: 6px;
+      padding: 10px ;
+
+      /* Position the tooltip */
+      position: absolute;
+      z-index: 1;
+      top: -5px;
+      left: 105%;
+    }
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
     }
 	</style>
 </head>
@@ -99,6 +115,14 @@
       Mp: <input type="text" name="mp" value={{mp}}>
       Ta: <input type="text" name="ta" value={{ta}}>
       Ts: <input type="text" name="ts" value="{{ts}}">
+      <div class="tooltip">    ?
+        <div class="tooltiptext">
+          G = Función de Transferencia de la planta <br>
+          Mp = Maximo<br>
+          Ta = Tiemp de establecimiento<br>
+          Ts = Tiempo de muestreo <br>
+        </div>
+      </div>
       <br>
       <br>
       <input type="radio" name="action" value="PD" checked>PD

@@ -60,6 +60,29 @@
       .refOutside{
         background-color: #36A2EB;
       }
+      .tooltip {
+        position: relative;
+        display: inline-block;
+        border-bottom: 1px dotted black;
+      }
+      .tooltip .tooltiptext {
+        visibility: hidden;
+        width: 170px;
+        background-color: white;
+        color: black;
+        text-align: center;
+        border-radius: 6px;
+        padding: 10px ;
+
+        /* Position the tooltip */
+        position: absolute;
+        z-index: 1;
+        top: -5px;
+        left: 105%;
+      }
+      .tooltip:hover .tooltiptext {
+        visibility: visible;
+      }
     </style>
   </head>
   <body>
@@ -78,6 +101,14 @@
         Tr: <input type="text" name="tr" value={{tr}}>
         Fase: <input type="text" name="fase" value={{fase}}>
         Ts: <input type="text" name="ts" value="{{ts}}">
+        <div class="tooltip">    ?
+          <div class="tooltiptext">
+            G : Función de Transferencia de la planta <br>
+            Tr : Tiempo de respuesta<br>
+            Fase : Fase<br>
+            Ts : Tiempo de muestreo <br>
+          </div>
+        </div>
         <br>
         <br>
         <input type="radio" name="action" value="PD" checked>PD
