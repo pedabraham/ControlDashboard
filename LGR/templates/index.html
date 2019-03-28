@@ -6,6 +6,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.min.js"></script>
   <link href="https://fonts.googleapis.com/css?family=Major+Mono+Display" rel="stylesheet">
+  <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
   <meta charset="utf-8">
   <title>ControlMaker</title>
   <style media="screen">
@@ -158,8 +159,8 @@
     <center>
       <div class="referencia" id='referencia' style="display:none;">
         <br>
-        Referencia= <input type="text" name="refControl" value="0" ><br><br>
-        <input type="button" name="" value="Establecer" class="but1" >
+        Referencia= <input type="text" name="refControl" value="0" id="valorRef"><br><br>
+        <input type="button" name="" value="Establecer" class="but1" onclick="establcerRef()" >
         <br>
         <br>
 
@@ -169,9 +170,7 @@
   </div>
 
 
-  <script>
-     var btn_1 = document.getElementById('activar');
-     btn_1.style.display = {{estado|tojson|safe}}.estado;
+  <script type="text/javascript" language="javascript">
      document.getElementById('activar').style.display = 'none';
      document.getElementById('activar2').style.display = {{estado|tojson|safe}}.estado;
 
@@ -185,6 +184,14 @@
        location.replace("/#refOutside");
        //document.getElementById('refOutside').style.padding-top = '30px';
        //document.getElementById('referencia').style.margin-right = 0;
+     }
+
+     function establcerRef(){
+       var refVal = document.getElementById('valorRef').value;
+       console.log(refVal);
+       $.post( "/postmethod", {
+          javascript_data: refVal
+        });
      }
      //document.getElementById("estado").style.display = {{estado|tojson|safe}}.estado;
      console.log({{estado|tojson|safe}}.estado);

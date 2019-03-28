@@ -5,6 +5,7 @@ from scipy.signal import lti, step2
 from flask import Flask, render_template, request, Response
 import io
 import json
+import serial
 
 
 def poloDominante(Mp1, ta):
@@ -379,6 +380,23 @@ def usoDeControlador():
     print(accion)
     print(valoresEqDif)
     return render_template('usoDeControlador.html', valoresEqDif=valoresEqDif)
+
+@app.route('/postmethod', methods = ['POST'])
+def get_post_javascript_data():
+    referencia = request.form['javascript_data']
+    #print(referencia)
+    valoresEqDif['ref'] = float(referencia)
+    for k,v in valoresEqDif.items():
+        valoresEqDif[k]=float("{0:.2f}".format(v))
+    print(arduino(valoresEqDif))
+    return referencia
+
+ard = serial.Serial('/dev/cu.usbmodem14601',115200)
+def arduino(dato):
+    ard.write(str(json.dumps(valoresEqDif)).encode('utf-8'))
+    return(json.dumps(valoresEqDif))
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
