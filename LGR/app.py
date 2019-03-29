@@ -35,6 +35,13 @@ def controladorByLGR(G, accion, PoloD):
         G = G * PI
     elif accion == "PID":
         G = G * PID
+    G = G.minreal()
+    tfgf = control.TransferFunction([1],[1]) #transfer function gain finder
+    for zero in G.zero():
+        tfp = control.TransferFunction([1],[1,-1*zero])#transfer funtion of prube
+        tfgf = tfgf * tfp
+    tfg = G * tfgf
+    gain = tfg.num[0][0][0]
 
     angulosPolo = 0
     for polo in G.pole():
@@ -76,7 +83,7 @@ def controladorByLGR(G, accion, PoloD):
 
     for zero in (GcwK * G).zero():
         mNum = mNum * mod(zero - PoloD)
-    k = mDen / mNum
+    k =  mDen / (mNum * gain)
 
     GcwK = GcwK * k
     Tout, yout = control.step_response(GcwK * G / (GcwK * G + 1))
@@ -111,7 +118,7 @@ def controladorByLGR(G, accion, PoloD):
 
     elif accion == "PI":
         Ti = 1 / (-distanceNewZero)
-        Kp = k / Ti
+        Kp = k
         sal = ("k= " + str(k) + " kp= " + str(Kp) + " Ti= " + str(Ti))
         print(sal)
         constantes = {
@@ -157,10 +164,11 @@ def controladorByFreq(planta,accion,tr,fase):
       0.5*np.pi*len(list(filter(lambda x: x == 0, G.zero()))))
   wpd = wc/(np.tan(faseR-np.pi+angP-angZ))
   td = 1 /wpd
-  kp = (((np.prod(np.sqrt((wc/(-1*np.array(list(filter(lambda x: x < 0, G.pole())))))**2+1)))/
+  kp = ((((np.prod(np.sqrt((wc/(-1*np.array(list(filter(lambda x: x < 0, G.pole())))))**2+1)))/
       (np.prod(np.sqrt((wc/(-1*np.array(list(filter(lambda x: x < 0, np.append(G.zero(),wpd)))))**2+1)))))*
         (np.prod(-1*np.array(list(filter(lambda x: x < 0, G.pole()))))/
-         (np.prod(-1*np.array(list(filter(lambda x: x < 0, G.zero()))))*gain)))
+         (np.prod(-1*np.array(list(filter(lambda x: x < 0, G.zero()))))*gain))) *
+         ((wc**len(list(filter(lambda x: x == 0, G.pole()))))/(wc**len(list(filter(lambda x: x == 0, G.zero()))))))
   ti = td
   TdPID = 1 / ((wc/wpd) +(-1* PID.zero()))
   TiPID = 1 / ((wc/wpd) * (-1*PID.zero()) * TdPID)
@@ -191,7 +199,7 @@ def controladorByFreq(planta,accion,tr,fase):
         constantes = {
             'ti' : ti,
             'td' : 0,
-            'kp' : kp
+            'kp' : kp*ti
         }
   else:
         print("No se tiene definicion de la accion de control deseada; las acciones de control definidas son I, P, PI, PD y PID")
@@ -201,21 +209,11 @@ def setValoresEqDif(constantes,accion,T):
     if accion == "PD":
         Td = constantes['td']
         Kp = constantes['kp']
-        print(Td)
-        print(Kp)
-
-
-        a0 = (Kp + Td/T)
-        a1 = -Td/T
-        a2 = 0
-        b0 = 0
-        print('ved')
-        print(a0)
-
+        kd = Td*Kp
         return( {
-            "a0": a0,
-            "a1": a1,
-            "a2": a2,
+            "a0": (Kp + kd/T),
+            "a1": -kd/T,
+            "a2": 0,
             "b0": 0
         })
 
@@ -223,18 +221,21 @@ def setValoresEqDif(constantes,accion,T):
         Td = constantes['td']
         Kp = constantes['kp']
         Ti = constantes['ti']
+        kd = Td*Kp
+        ki = Kp/Ti
         return ({
-            "a0": Kp+Ti*T+Td/T,
-            "a1": -Kp+2*Td/T,
+            "a0": Kp+ki*T+kd/T,
+            "a1": -Kp+2*kd/T,
             "a2": Td/T,
             "b0": 1
         })
     elif accion == "PI":
         Kp = constantes['kp']
         Ti = constantes['ti']
+        ki = Kp/Ti
         return  ({
             "a0": Kp,
-            "a1": Ti*T-Kp,
+            "a1": ki*T-Kp,
             "a2": 0,
             "b0": 1
         })
