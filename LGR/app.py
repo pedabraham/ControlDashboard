@@ -28,7 +28,7 @@ def controladorByLGR(G, accion, PoloD):
     rlistI, klistI = control.root_locus(G,Plot=False)
     PD = control.TransferFunction([1], [1])
     PI = control.TransferFunction([1], [1, 0])
-    PID = control.TransferFunction([1, 9.37], [1, 0])
+    PID = control.TransferFunction([1, 2], [1, 0])
     if accion == "PD":
         G = G * PD
     elif accion == "PI" or accion == "I":
@@ -142,7 +142,7 @@ def controladorByFreq(planta,accion,tr,fase):
   magIn, phaseIn, omegaIn = control.bode(planta,Plot=False)
   PD = control.TransferFunction([1],[1])
   PI = control.TransferFunction([1],[1,0])
-  PID = control.TransferFunction([1,5],[1,0])
+  PID = control.TransferFunction([1,2],[1,0])
   if accion == "PD":
         G = planta * PD
   elif accion == "PI" or accion == "I":
@@ -169,13 +169,17 @@ def controladorByFreq(planta,accion,tr,fase):
         (np.prod(-1*np.array(list(filter(lambda x: x < 0, G.pole()))))/
          (np.prod(-1*np.array(list(filter(lambda x: x < 0, G.zero()))))*gain))) *
          ((wc**len(list(filter(lambda x: x == 0, G.pole()))))/(wc**len(list(filter(lambda x: x == 0, G.zero()))))))
+  print(kp)
   ti = td
-  TdPID = 1 / ((wc/wpd) +(-1* PID.zero()))
-  TiPID = 1 / ((wc/wpd) * (-1*PID.zero()) * TdPID)
+  print(kp*ti)
+  TdPID = 1 / ((wpd) +(-1* PID.zero()))
+  TiPID = 1 / ((wpd) * (-1*PID.zero()) * TdPID)
   KP_pid = kp/TdPID
-  Gc = kp * control.TransferFunction([wc/wpd,1],[1])
+
+  Gc = kp * control.TransferFunction([1/wpd,1],[1])
   Tout, yout = control.step_response(G*Gc/(G*Gc+1))
   magOut, phaseOut, omegaOut = control.bode(G*Gc,Plot=False)
+
   if accion == "PD":
         sal = " kp= " + str(kp) + " Td= " + str(td)
         print(sal)
@@ -194,7 +198,7 @@ def controladorByFreq(planta,accion,tr,fase):
             'kp' : KP_pid[0]
         }
   elif accion == "PI":
-        sal = (" kp= " + str(kp) + " Ti= " + str(ti))
+        sal = (" kp= " + str(kp*ti) + " Ti= " + str(ti))
         print(sal)
         constantes = {
             'ti' : ti,
@@ -225,8 +229,8 @@ def setValoresEqDif(constantes,accion,T):
         ki = Kp/Ti
         return ({
             "a0": Kp+ki*T+kd/T,
-            "a1": -Kp+2*kd/T,
-            "a2": Td/T,
+            "a1": -Kp-2*kd/T,
+            "a2": kd/T,
             "b0": 1
         })
     elif accion == "PI":
@@ -289,6 +293,7 @@ def index():
         else:
             den = [1.0]
         GPlanta = control.TransferFunction(num, den)
+        #print(GPlanta)
         accion = request.form['action']
         Ta = request.form['ta']
         Mp = request.form['mp']
