@@ -228,8 +228,8 @@ def setValoresEqDif(constantes,accion,T):
         ki = Kp/Ti
         return ({
             "a0": Kp+ki*T+kd/T,
-            "a1": -Kp+2*kd/T,
-            "a2": Td/T,
+            "a1": -Kp-2*kd/T,
+            "a2": kd/T,
             "b0": 1
         })
     elif accion == "PI":
@@ -292,6 +292,7 @@ def index():
         else:
             den = [1.0]
         GPlanta = control.TransferFunction(num, den)
+        #print(GPlanta)
         accion = request.form['action']
         Ta = request.form['ta']
         Mp = request.form['mp']
