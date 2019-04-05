@@ -1,0 +1,5 @@
+{
+    "port": "/dev/cu.usbmodem14601",
+    "board": "arduino:avr:uno",
+    "sketch": "ControlDeTemperatura.ino"
+}

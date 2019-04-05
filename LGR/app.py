@@ -6,6 +6,7 @@ from flask import Flask, render_template, request, Response
 import io
 import json
 import serial
+import time
 
 
 def poloDominante(Mp1, ta):
@@ -340,7 +341,7 @@ def freq():
     webC = {'estado':'none'}
     if request.method == 'POST':
         # Then get the data from the form
-        global GPlantaStrInput,tr,fase,T,Ts
+        global GPlantaStrInput,tr,fase,T,Ts,valoresEqDif
         GPlantaStrInput = request.form['G']
         GPlantaStr = GPlantaStrInput.split("/")
         num = [float(i) for i in GPlantaStr[0].split(',')]
@@ -391,16 +392,27 @@ def usoDeControlador():
 def get_post_javascript_data():
     referencia = request.form['javascript_data']
     #print(referencia)
-    valoresEqDif['ref'] = float(referencia)
-    for k,v in valoresEqDif.items():
-        valoresEqDif[k]=float("{0:.2f}".format(v))
-    print(arduino(valoresEqDif))
+    dato1 = {
+        'p' : 0,
+        'a0': float("{0:.6f}".format(valoresEqDif['a0'])),
+        'a1': float("{0:.6f}".format(valoresEqDif['a1']))
+    }
+    dato2 = {
+        'p' : 1,
+        'a2': float("{0:.2f}".format(valoresEqDif['a2'])),
+        'b0': valoresEqDif['b0'],
+        'ref' : float(referencia)
+    }
+    arduino(dato1)
+    arduino(dato2)
     return referencia
 
 ard = serial.Serial('/dev/cu.usbmodem14601',115200)
 def arduino(dato):
-    ard.write(str(json.dumps(valoresEqDif)).encode('utf-8'))
-    return(json.dumps(valoresEqDif))
+    ard.write(str(json.dumps(dato)).encode('utf-8'))
+    print(json.dumps(dato))
+    time.sleep(1)
+    return 0
 
 
 
