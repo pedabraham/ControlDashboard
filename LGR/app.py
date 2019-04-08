@@ -7,7 +7,7 @@ import io
 import json
 import serial
 import time
-
+import pandas as pan
 
 def poloDominante(Mp1, ta):
     Mp = Mp1 / 100
@@ -405,6 +405,13 @@ def get_post_javascript_data():
     }
     arduino(dato1)
     arduino(dato2)
+    print('adquiriendo señal')
+    signal,time = dataSamples(2500)
+    panData2 = pan.DataFrame(signal)
+    panData2.to_csv("temp.csv")
+    panData = pan.DataFrame(time)
+    panData.to_csv("time.csv")
+    print('señal adquirida')
     return referencia
 
 ard = serial.Serial('/dev/cu.usbmodem14601',115200)
@@ -414,6 +421,22 @@ def arduino(dato):
     time.sleep(1)
     return 0
 
+
+def dataSamples(datos):
+    senal = []
+    t = []
+    #ti = time.time();
+    tp = time.time();
+    dato = ard.readline()
+    for i in range(0,datos):
+        tn = time.time()-tp;
+        tp = time.time();
+        dato = ard.readline()
+        senal.append(float(dato))
+        print(float(dato))
+        t.append(tn)
+    sen = np.array(senal)
+    return sen,t
 
 
 if __name__ == '__main__':
