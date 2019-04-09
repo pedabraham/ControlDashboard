@@ -39,6 +39,7 @@ void loop() {
     if (Serial.available() > 0) {
         deserializeJson(doc, Serial);
         delay(100);
+        yk =0;
         if (doc["p"]==0){
             a0 = float(doc["a0"]); // 0.434343
             a1 = float(doc["a1"]);
@@ -64,22 +65,24 @@ void loop() {
     if (millis()>=(ts*2)){
         temp = lmt.getSingleMeasure();
         //Serial.println(1);
-        Serial.println(temp);
+        Serial.print(temp);
         ek = ref - temp;
-        //Serial.println(ek);
+        Serial.print(" ek: ");
+        Serial.print(ek);
         yk = b0 * yk1 + a0 * ek + a1 * ek_1 + a2 * ek_2;
         //Serial.println(a0);
-        //Serial.println(yk);
+        Serial.print(" yk: ");
+        Serial.println(yk);
         yk1 = yk;
         ek_2 = ek_1;
         ek_1 = ek;
         
         if (yk>255) {
-            analogWrite(6,255);
+            analogWrite(3,255);
         }else if (yk<1){
-            analogWrite(6,0);
+            analogWrite(3,0);
         }else{
-            analogWrite(6,yk);
+            analogWrite(3,yk);
         }
         
         delay(ts);
