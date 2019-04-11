@@ -112,9 +112,9 @@
         </div>
         <br>
         <br>
-        <input type="radio" name="action" value="PD" checked>PD
-        <input type="radio" name="action" value="PID">PID
-        <input type="radio" name="action" value="PI">PI <br>
+        <input type="radio" name="action" value="PD" id="PD">PD
+        <input type="radio" name="action" value="PID" id="PID">PID
+        <input type="radio" name="action" value="PI" id="PI">PI <br>
         <br>
 
         <button type="submit" name="button">Diseñar</button>
@@ -152,15 +152,15 @@
     </div>
 
     <script>
-
-      document.getElementById('activar2').style.display = {{estado|tojson|safe}}.estado;
-      function controlUself(){
-        console.log('90');
-        document.getElementById('referencia').style.display = 'inline';
-        location.replace("/freq#refOutside");
-        //document.getElementById('refOutside').style.padding-top = '30px';
-        //document.getElementById('referencia').style.margin-right = 0;
-      }
+    document.getElementById({{estado|tojson|safe}}.accion).checked = true;
+    document.getElementById('activar2').style.display = {{estado|tojson|safe}}.estado;
+    function controlUself(){
+      console.log('90');
+      document.getElementById('referencia').style.display = 'inline';
+      location.replace("/freq#refOutside");
+    }
+      //document.getElementById('referencia').style.margin-right = 0;
+      //document.getElementById('refOutside').style.padding-top = '30px';
 
       function establcerRef(){
         var refVal = document.getElementById('valorRef').value;

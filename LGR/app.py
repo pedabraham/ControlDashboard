@@ -76,7 +76,7 @@ def controladorByLGR(G, accion, PoloD):
     distanceNewZero = np.real(PoloD) - np.imag(PoloD) / np.tan(anguloZeroPD)
 
     GcwK = control.TransferFunction([1, -distanceNewZero], [1])
-
+    print("nuevo Polo: {}".format(-distanceNewZero))
     mDen = 1
     mNum = 1
     for polo in (GcwK * G).pole():
@@ -85,8 +85,10 @@ def controladorByLGR(G, accion, PoloD):
     for zero in (GcwK * G).zero():
         mNum = mNum * mod(zero - PoloD)
     k =  mDen / (mNum * gain)
+    print("k: {}".format(k))
 
     GcwK = GcwK * k
+    print(GcwK*PID)
     Tout, yout = control.step_response(GcwK * G / (GcwK * G + 1))
     rlistO, klistO = control.root_locus(GcwK * G,Plot=False)
     # plt.plot(T,yout)
@@ -151,7 +153,7 @@ def controladorByFreq(planta,accion,tr,fase):
   elif accion == "PID":
         G = planta * PID
   G = G.minreal()
-  wc = 1/tr
+  wc = 10/tr
   faseR = (fase/180)*np.pi
   tfgf = control.TransferFunction([1],[1]) #transfer function gain finder
   for zero in G.zero():
@@ -159,6 +161,7 @@ def controladorByFreq(planta,accion,tr,fase):
       tfgf = tfgf * tfp
   tfg = G * tfgf
   gain = tfg.num[0][0][0]
+  print("Gain {}".format(gain))
   angP = (sum(np.arctan(wc/(-1*np.array(list(filter(lambda x: x < 0, G.pole()))))))+
     0.5*np.pi*len(list(filter(lambda x: x == 0, G.pole()))))
   angZ = (sum(np.arctan(wc/(-1*np.array(list(filter(lambda x: x < 0, G.zero()))))))+
@@ -178,6 +181,7 @@ def controladorByFreq(planta,accion,tr,fase):
   KP_pid = kp/TdPID
 
   Gc = kp * control.TransferFunction([1/wpd,1],[1])
+  print(Gc)
   Tout, yout = control.step_response(G*Gc/(G*Gc+1))
   magOut, phaseOut, omegaOut = control.bode(G*Gc,Plot=False)
 
@@ -239,8 +243,8 @@ def setValoresEqDif(constantes,accion,T):
         Ti = constantes['ti']
         ki = Kp/Ti
         return  ({
-            "a0": Kp,
-            "a1": ki*T-Kp,
+            "a0": Kp+ki*T,
+            "a1": -Kp,
             "a2": 0,
             "b0": 1
         })
@@ -280,7 +284,7 @@ constantes = {
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    webC = {'estado':'none'}
+    webC = {'estado':'none','accion':'PD'}
     if request.method == 'POST':
         # Then get the data from the form
 
@@ -315,6 +319,7 @@ def index():
         realO = np.real(rO)
         imagO = np.imag(rO)
         webC['estado']='inline'
+        webC['accion']=accion
         valoresEqDif = setValoresEqDif(constantes,accion,T)
         valoresEqDifJson = json.dumps(valoresEqDif)
         print(str(valoresEqDif))
@@ -338,7 +343,7 @@ def index():
         #salidaHtml = str(velocidad)
 @app.route('/freq', methods=['GET','POST'])
 def freq():
-    webC = {'estado':'none'}
+    webC = {'estado':'none','accion':'PD'}
     if request.method == 'POST':
         # Then get the data from the form
         global GPlantaStrInput,tr,fase,T,Ts,valoresEqDif
@@ -370,6 +375,7 @@ def freq():
 
         valoresEqDif = setValoresEqDif(constantes,accion,T)
         webC['estado']='inline'
+        webC['accion']=accion
         #respuesta = "request.form['vel']"
         #respuesta2 = request.form['u']
         # print(GPlanta)
