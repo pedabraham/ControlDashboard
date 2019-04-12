@@ -32,6 +32,7 @@ float ek_2 = 0;
 float ek = 0;
 float temp = 0.0;
 int ts= 175;
+bool flag = true;
 
 
 void loop() {
@@ -40,6 +41,9 @@ void loop() {
         deserializeJson(doc, Serial);
         delay(100);
         yk =0;
+        yk1 = 0;
+        ek_1 = 0;
+        ek_2 = 0;
         if (doc["p"]==0){
             a0 = float(doc["a0"]); // 0.434343
             a1 = float(doc["a1"]);
@@ -47,8 +51,14 @@ void loop() {
             Serial.print(a0,5);
             Serial.print(" a1:");
             Serial.println(a1,5);*/
+            if (flag)
+            {
+                flag= false;
+            }
+            else{
+                flag = true;
+            }
         }
-        
         else if (doc["p"]==1) {
             a2 = float(doc["a2"]); // 9439393904.43
             ref = int(doc["ref"]); // 434349340.43
@@ -59,10 +69,16 @@ void loop() {
             Serial.print(a2,5);
             Serial.print(" b0:");
             Serial.println(b0,5);*/
-            
+            if (flag)
+            {
+                flag= false;
+            }
+            else{
+                flag = true;
+            }
         }
     }
-    if (millis()>=(ts*2)){
+    if (flag){
         temp = lmt.getSingleMeasure();
         //Serial.println(1);
         Serial.print(temp);
@@ -76,7 +92,6 @@ void loop() {
         yk1 = yk;
         ek_2 = ek_1;
         ek_1 = ek;
-        
         if (yk>255) {
             analogWrite(3,255);
         }else if (yk<1){
@@ -84,9 +99,6 @@ void loop() {
         }else{
             analogWrite(3,yk);
         }
-        
         delay(ts);
     }
-    
-
 }
