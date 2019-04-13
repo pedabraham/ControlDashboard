@@ -3,7 +3,7 @@ const size_t capacity = JSON_OBJECT_SIZE(7) + 20;
 DynamicJsonDocument doc(capacity);
 void setup() {
   Serial.begin(115200);
-  pinMode(6, OUTPUT);
+  pinMode(3, OUTPUT);
 }
 float a0 = 0; // 0.434343
 float a1 = 0; // 9990.43
@@ -16,10 +16,9 @@ float ek_1 = 0;
 float ek_2 = 0;
 float ek = 0;
 float dato = 0.0;
-int ts= 175;
+int ts= 5;
 bool flag = true;
 void loop() {
-
     if (Serial.available() > 0) {
         deserializeJson(doc, Serial);
         delay(100);
@@ -30,7 +29,7 @@ void loop() {
         if (doc["p"]==0){
             a0 = float(doc["a0"]); // 0.434343
             a1 = float(doc["a1"]);
-            Serial.print(a0,5);
+            //Serial.println(a0);
 
             if (flag)
             {
@@ -53,27 +52,30 @@ void loop() {
             }
         }
     }
+    
     if (flag){
+        //Serial.println(flag);
         dato = analogRead(A0);
         //Serial.println(1);
-        Serial.print(temp);
-        ek = ref - temp;
-        Serial.print(" ek: ");
-        Serial.print(ek);
+        //Serial.print(dato);
+        ek = ref - dato;
+        //Serial.print(" ek: ");
+        Serial.println(ek);
         yk = b0 * yk1 + a0 * ek + a1 * ek_1 + a2 * ek_2;
         //Serial.println(a0);
-        Serial.print(" yk: ");
-        Serial.println(yk);
+        //Serial.print(" yk: ");
+        //Serial.println(yk);
         yk1 = yk;
         ek_2 = ek_1;
         ek_1 = ek;
         if (yk>255) {
             analogWrite(3,255);
+            //Serial.println("total");
         }else if (yk<1){
             analogWrite(3,0);
         }else{
             analogWrite(3,yk);
         }
-        delay(ts);
+        delay(5);
     }
 }

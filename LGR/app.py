@@ -411,13 +411,13 @@ def get_post_javascript_data():
     }
     arduino(dato1)
     arduino(dato2)
-    print('adquiriendo señal')
+    """print('adquiriendo señal')
     signal,time = dataSamples(2500)
     panData2 = pan.DataFrame(signal)
     panData2.to_csv("temp.csv")
     panData = pan.DataFrame(time)
     panData.to_csv("time.csv")
-    print('señal adquirida')
+    print('señal adquirida')"""
     return referencia
 
 ard = serial.Serial('/dev/cu.usbmodem14601',115200)
