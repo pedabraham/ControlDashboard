@@ -5,7 +5,7 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.min.js"></script>
-  <link href="https://fonts.googleapis.com/css?family=Major+Mono+Display" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed:400,700" rel="stylesheet">
   <meta charset="utf-8">
   <title>ControlMaker</title>
   <style media="screen">
@@ -14,12 +14,16 @@
         margin-right : 0;
         margin-bottom: 0;
         padding: 0px;
-        font-family: 'Major Mono Display', monospace;
+        font-family: 'Roboto Condensed', sans-serif;
         background-color: #272C34;
         color: white;
       }
     .titulo{
       padding: 10px;
+      font-family: 'Roboto Condensed 700', sans-serif;
+    }
+    .resultados{
+      font-family: 'Roboto Condensed 400', sans-serif;
     }
     nav{
       padding-top: 10px;
@@ -133,9 +137,9 @@
       <button type="submit" name="button">Diseñar</button>
     </form>
 
-    <div class="">
+    <div class="resultados">
       <h3>{{constantes}}</h3>
-      <h6>{{valoresEqDif}}</h6>
+      {{valoresEqDif}}
     </div>
 
     <input type="button" name="" onclick="controlU()" value="Usar controlador" id="activar" style="display:none;">
