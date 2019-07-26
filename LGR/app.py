@@ -6,6 +6,9 @@ from flask import Flask, render_template, request, Response
 import io
 import json
 
+# Función necesaria en el diseño de controlador mediante LGR
+# Se obtiene con los paramentros de comportamiento deseado
+
 
 def poloDominante(Mp1, ta):
     Mp = Mp1 / 100
@@ -14,17 +17,24 @@ def poloDominante(Mp1, ta):
     Wn = 4 / (E * ta)
     polosDominantes = np.roots([1, 2 * E * Wn, Wn**2])
     print(ta)
-    print ('poloDominante: '+str(polosDominantes[0]))
+    print('poloDominante: ' + str(polosDominantes[0]))
     return polosDominantes[0]
 
 
 def mod(n):
     return np.sqrt(np.real(n)**2 + np.imag(n)**2)
 
+# Diseño de controlador mediante el metodo de lugar geometrico de las raices
+# Se necesita saber,"G" la funcion de trasferencia de la planta, la accion de control,
+# y el polo dominante
+# La función regresa los datos para ver graficamente la respuesta al impluso y el LGR
+# ademas de los valores de las constantes necesarias para controlar la planta
+
 
 def controladorByLGR(G, accion, PoloD):
     Tin, yin = control.step_response(G / (G + 1))
-    rlistI, klistI = control.root_locus(G,Plot=False)
+    rlistI, klistI = control.root_locus(G, Plot=False)
+    # se define que tipo de controlador se debe de usar en este caso se usara el PD por lo que a nuestra funcion original no se le agrega nada conocido.
     PD = control.TransferFunction([1], [1])
     PI = control.TransferFunction([1], [1, 0])
     PID = control.TransferFunction([1, 2], [1, 0])
@@ -35,13 +45,14 @@ def controladorByLGR(G, accion, PoloD):
     elif accion == "PID":
         G = G * PID
     G = G.minreal()
-    tfgf = control.TransferFunction([1],[1]) #transfer function gain finder
+    tfgf = control.TransferFunction([1], [1])  # transfer function gain finder
     for zero in G.zero():
-        tfp = control.TransferFunction([1],[1,-1*zero])#transfer funtion of prube
+        tfp = control.TransferFunction(
+            [1], [1, -1 * zero])  # transfer funtion of prube
         tfgf = tfgf * tfp
     tfg = G * tfgf
     gain = tfg.num[0][0][0]
-
+    # Posteriomente se hace la suma de los angulos de polos hacia el polo dominante.
     angulosPolo = 0
     for polo in G.pole():
         if np.real(polo) > np.real(PoloD):
@@ -53,7 +64,7 @@ def controladorByLGR(G, accion, PoloD):
                                      np.abs(np.real(polo) - np.real(PoloD)))
 
         #print (np.degrees(angulosPolo))
-
+    # Posteriomente se hace la suma de los angulos de zeros hacia el polo dominante.
     angulosZero = 0
     for zero in G.zero():
         if np.real(zero) > np.real(PoloD):
@@ -69,6 +80,7 @@ def controladorByLGR(G, accion, PoloD):
               " no funciona porque no cumple la condicion de fase")
         return 0
 
+    # Y teniendo las dos sumas de angulos, se obtenie el angulo del zero del contralodor PD
     anguloZeroPD = -np.pi + angulosPolo - angulosZero
     # print(np.degrees(anguloZeroPD))
     distanceNewZero = np.real(PoloD) - np.imag(PoloD) / np.tan(anguloZeroPD)
@@ -82,26 +94,25 @@ def controladorByLGR(G, accion, PoloD):
 
     for zero in (GcwK * G).zero():
         mNum = mNum * mod(zero - PoloD)
-    k =  mDen / (mNum * gain)
+    k = mDen / (mNum * gain)
     print("k: {}".format(k))
 
     GcwK = GcwK * k
-    print(GcwK*PID)
+    print(GcwK * PID)
     Tout, yout = control.step_response(GcwK * G / (GcwK * G + 1))
-    rlistO, klistO = control.root_locus(GcwK * G,Plot=False)
+    rlistO, klistO = control.root_locus(GcwK * G, Plot=False)
     # plt.plot(T,yout)
 
     # plt.show()
-
 
     if accion == "PD":
         Td = 1 / (-distanceNewZero)
         Kp = k / Td
         sal = "k= " + str(k) + " kp= " + str(Kp) + " Td= " + str(Td)
         constantes = {
-            'ti' : 0,
-            'td' : Td,
-            'kp' : Kp
+            'ti': 0,
+            'td': Td,
+            'kp': Kp
         }
         print(sal)
     elif accion == "PID":
@@ -112,9 +123,9 @@ def controladorByLGR(G, accion, PoloD):
                " Td= " + str(Td) + " Ti= " + str(Ti))
         print(sal)
         constantes = {
-            'ti' : Ti,
-            'td' : Td,
-            'kp' : Kp
+            'ti': Ti,
+            'td': Td,
+            'kp': Kp
         }
 
     elif accion == "PI":
@@ -123,103 +134,127 @@ def controladorByLGR(G, accion, PoloD):
         sal = ("k= " + str(k) + " kp= " + str(Kp) + " Ti= " + str(Ti))
         print(sal)
         constantes = {
-            'ti' : Ti,
-            'td' : 0,
-            'kp' : Kp
+            'ti': Ti,
+            'td': 0,
+            'kp': Kp
         }
 
     else:
         print("No se tiene definicion de la accion de control deseada; las acciones de control definidas son I, P, PI, PD y PID")
         constantes = {
-            'ti' : 0,
-            'td' : 0,
-            'kp' : 0
+            'ti': 0,
+            'td': 0,
+            'kp': 0
         }
-    return(Tout, yout, sal,Tin,yin,rlistI,rlistO,constantes)
+    return(Tout, yout, sal, Tin, yin, rlistI, rlistO, constantes)
 
-def controladorByFreq(planta,accion,tr,fase):
-  planta = planta.minreal()
-  Tin, yin = control.step_response(planta/(planta+1))
-  magIn, phaseIn, omegaIn = control.bode(planta,Plot=False)
-  PD = control.TransferFunction([1],[1])
-  PI = control.TransferFunction([1],[1,0])
-  PID = control.TransferFunction([1,2],[1,0])
-  if accion == "PD":
+
+# Diseño de controlador mediante respuesta en frecuencia
+# Se necesita saber,"G" la funcion de trasferencia de la planta, la accion de control,
+# y los paramentros de comportamiento deseados
+# La función regresa los datos para ver graficamente la respuesta
+# y los valores de las constantes necesarias para controlar la planta
+def controladorByFreq(planta, accion, tr, fase):
+    planta = planta.minreal()
+    Tin, yin = control.step_response(planta / (planta + 1))
+    magIn, phaseIn, omegaIn = control.bode(planta, Plot=False)
+
+    # Se establece una acción de control
+    PD = control.TransferFunction([1], [1])
+    PI = control.TransferFunction([1], [1, 0])
+    PID = control.TransferFunction([1, 2], [1, 0])
+    if accion == "PD":
         G = planta * PD
-  elif accion == "PI" or accion == "I":
+    elif accion == "PI" or accion == "I":
         G = planta * PI
-  elif accion == "PID":
+    elif accion == "PID":
         G = planta * PID
-  G = G.minreal()
-  wc = 10/tr
-  faseR = (fase/180)*np.pi
-  tfgf = control.TransferFunction([1],[1]) #transfer function gain finder
-  for zero in G.zero():
-      tfp = control.TransferFunction([1],[1,-1*zero])#transfer funtion of prube
-      tfgf = tfgf * tfp
-  tfg = G * tfgf
-  gain = tfg.num[0][0][0]
-  print("Gain {}".format(gain))
-  angP = (sum(np.arctan(wc/(-1*np.array(list(filter(lambda x: x < 0, G.pole()))))))+
-    0.5*np.pi*len(list(filter(lambda x: x == 0, G.pole()))))
-  angZ = (sum(np.arctan(wc/(-1*np.array(list(filter(lambda x: x < 0, G.zero()))))))+
-      0.5*np.pi*len(list(filter(lambda x: x == 0, G.zero()))))
-  wpd = wc/(np.tan(faseR-np.pi+angP-angZ))
-  td = 1 /wpd
-  kp = ((((np.prod(np.sqrt((wc/(-1*np.array(list(filter(lambda x: x < 0, G.pole())))))**2+1)))/
-      (np.prod(np.sqrt((wc/(-1*np.array(list(filter(lambda x: x < 0, np.append(G.zero(),wpd)))))**2+1)))))*
-        (np.prod(-1*np.array(list(filter(lambda x: x < 0, G.pole()))))/
-         (np.prod(-1*np.array(list(filter(lambda x: x < 0, G.zero()))))*gain))) *
-         ((wc**len(list(filter(lambda x: x == 0, G.pole()))))/(wc**len(list(filter(lambda x: x == 0, G.zero()))))))
-  print(kp)
-  ti = td
-  print(kp*ti)
-  TdPID = 1 / ((wpd) +(-1* PID.zero()))
-  TiPID = 1 / ((wpd) * (-1*PID.zero()) * TdPID)
-  KP_pid = kp/TdPID
+    G = G.minreal()
+    wc = 10 / tr
+    faseR = (fase / 180) * np.pi
 
-  Gc = kp * control.TransferFunction([1/wpd,1],[1])
-  print(Gc)
-  Tout, yout = control.step_response(G*Gc/(G*Gc+1))
-  magOut, phaseOut, omegaOut = control.bode(G*Gc,Plot=False)
+    # Se debe conocer la ganacia neta de la funcion de transferencia
+    # sin importar como se introdujo la función de trasnferencia
+    tfgf = control.TransferFunction([1], [1])  # transfer function gain finder
+    for zero in G.zero():
+        tfp = control.TransferFunction(
+            [1], [1, -1 * zero])  # transfer funtion of prube
+        tfgf = tfgf * tfp
+    tfg = G * tfgf
+    gain = tfg.num[0][0][0]
+    print("Gain {}".format(gain))
 
-  if accion == "PD":
+    # Posteriormente se obtienene los angulos de los polos y lo zeros,
+    # tal como dice el metodo de frecuencia, para despues obtener wpd, el td y el kp
+    angP = (sum(np.arctan(wc / (-1 * np.array(list(filter(lambda x: x < 0, G.pole())))))) +
+            0.5 * np.pi * len(list(filter(lambda x: x == 0, G.pole()))))
+    angZ = (sum(np.arctan(wc / (-1 * np.array(list(filter(lambda x: x < 0, G.zero())))))) +
+            0.5 * np.pi * len(list(filter(lambda x: x == 0, G.zero()))))
+    wpd = wc / (np.tan(faseR - np.pi + angP - angZ))
+    td = 1 / wpd
+    kp = ((((np.prod(np.sqrt((wc / (-1 * np.array(list(filter(lambda x: x < 0, G.pole())))))**2 + 1))) /
+            (np.prod(np.sqrt((wc / (-1 * np.array(list(filter(lambda x: x < 0, np.append(G.zero(), wpd)))))**2 + 1))))) *
+           (np.prod(-1 * np.array(list(filter(lambda x: x < 0, G.pole())))) /
+            (np.prod(-1 * np.array(list(filter(lambda x: x < 0, G.zero())))) * gain))) *
+          ((wc**len(list(filter(lambda x: x == 0, G.pole())))) / (wc**len(list(filter(lambda x: x == 0, G.zero()))))))
+    print(kp)
+
+    # Se obtienen los valores de ti, en caso que se hubiera querido usar un PI
+    ti = td
+    print(kp * ti)
+
+    # Se hace lo mismo para el PID
+    TdPID = 1 / ((wpd) + (-1 * PID.zero()))
+    TiPID = 1 / ((wpd) * (-1 * PID.zero()) * TdPID)
+    KP_pid = kp / TdPID
+
+    # Se revisa la parte anteriomente desconocida de la  funcion del controlador (sin zeros extras o polos en el origen)
+    Gc = kp * control.TransferFunction([1 / wpd, 1], [1])
+    print(Gc)
+    Tout, yout = control.step_response(G * Gc / (G * Gc + 1))
+    magOut, phaseOut, omegaOut = control.bode(G * Gc, Plot=False)
+
+    if accion == "PD":
         sal = " kp= " + str(kp) + " Td= " + str(td)
         print(sal)
         constantes = {
-            'ti' : 0,
-            'td' : td,
-            'kp' : kp
+            'ti': 0,
+            'td': td,
+            'kp': kp
         }
-  elif accion == "PID":
+    elif accion == "PID":
         sal = (" kp= " + str(KP_pid[0]) +
                " Td= " + str(TdPID[0]) + " Ti= " + str(TiPID[0]))
         print(sal)
         constantes = {
-            'ti' : TiPID[0],
-            'td' : TdPID[0],
-            'kp' : KP_pid[0]
+            'ti': TiPID[0],
+            'td': TdPID[0],
+            'kp': KP_pid[0]
         }
-  elif accion == "PI":
-        sal = (" kp= " + str(kp*ti) + " Ti= " + str(ti))
+    elif accion == "PI":
+        sal = (" kp= " + str(kp * ti) + " Ti= " + str(ti))
         print(sal)
         constantes = {
-            'ti' : ti,
-            'td' : 0,
-            'kp' : kp*ti
+            'ti': ti,
+            'td': 0,
+            'kp': kp * ti
         }
-  else:
+    else:
         print("No se tiene definicion de la accion de control deseada; las acciones de control definidas son I, P, PI, PD y PID")
-  return (sal,Tin, yin,Tout, yout,constantes)
+    return (sal, Tin, yin, Tout, yout, constantes)
 
-def setValoresEqDif(constantes,accion,T):
+# Funcion necesaria para convertir las constantes como Ti, tiempo integrativo,
+# en valores propios de la ecuacion de diferencia y poder hacer el control discreto
+
+
+def setValoresEqDif(constantes, accion, T):
     if accion == "PD":
         Td = constantes['td']
         Kp = constantes['kp']
-        kd = Td*Kp
-        return( {
-            "a0": (Kp + kd/T),
-            "a1": -kd/T,
+        kd = Td * Kp
+        return({
+            "a0": (Kp + kd / T),
+            "a1": -kd / T,
             "a2": 0,
             "b0": 0
         })
@@ -228,20 +263,20 @@ def setValoresEqDif(constantes,accion,T):
         Td = constantes['td']
         Kp = constantes['kp']
         Ti = constantes['ti']
-        kd = Td*Kp
-        ki = Kp/Ti
+        kd = Td * Kp
+        ki = Kp / Ti
         return ({
-            "a0": Kp+ki*T+kd/T,
-            "a1": -Kp-2*kd/T,
-            "a2": kd/T,
+            "a0": Kp + ki * T + kd / T,
+            "a1": -Kp - 2 * kd / T,
+            "a2": kd / T,
             "b0": 1
         })
     elif accion == "PI":
         Kp = constantes['kp']
         Ti = constantes['ti']
-        ki = Kp/Ti
-        return  ({
-            "a0": Kp+ki*T,
+        ki = Kp / Ti
+        return ({
+            "a0": Kp + ki * T,
             "a1": -Kp,
             "a2": 0,
             "b0": 1
@@ -256,11 +291,12 @@ def setValoresEqDif(constantes,accion,T):
     print(valoresEqDif)
     return valoresEqDif
 
+
 app = Flask(__name__)
 
 GPlantaStrInput = '1/1,9.21,19.89,0'
 Mp = '9'
-Ta='0.1'
+Ta = '0.1'
 Ts = '0.05'
 tr = '8'
 fase = '60'
@@ -275,18 +311,23 @@ valoresEqDif = {
 }
 
 constantes = {
-    "ti" : 0,
-    "td" : 0,
-    "kp" : 0
+    "ti": 0,
+    "td": 0,
+    "kp": 0
 }
+
+# La siguiente ruta recoge los datos del index.html, donde se encuentra el metodo de LGR,
+# los manda las funciones del LGR y regresa los datos para las graficas y las constantes
+# de nuevo al index.html
+
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    webC = {'estado':'none','accion':'PD'}
+    webC = {'estado': 'none', 'accion': 'PD'}
     if request.method == 'POST':
         # Then get the data from the form
 
-        global GPlantaStrInput,Mp,Ta,T,constantes,accion,Ts,valoresEqDif
+        global GPlantaStrInput, Mp, Ta, T, constantes, accion, Ts, valoresEqDif
         GPlantaStrInput = request.form['G']
         GPlantaStr = GPlantaStrInput.split("/")
 
@@ -296,40 +337,43 @@ def index():
         else:
             den = [1.0]
         GPlanta = control.TransferFunction(num, den)
-        #print(GPlanta)
+        # print(GPlanta)
         accion = request.form['action']
         Ta = request.form['ta']
         Mp = request.form['mp']
         Ts = request.form['ts']
 
         #respt = controladorByLGR(GPlanta, accion, -2 + 2.5j)
-        if len(Ta)>0 and len(Mp)>0 and len(Ts)>0:
+        if len(Ta) > 0 and len(Mp) > 0 and len(Ts) > 0:
             T = float(Ts)
-            if float(Mp)>0 and float(Ta)>0 :
-                to,yo,sal,ti,yi,rI,rO,constantes = controladorByLGR(GPlanta, accion, poloDominante(float(Mp),float(Ta)))
+            if float(Mp) > 0 and float(Ta) > 0:
+                to, yo, sal, ti, yi, rI, rO, constantes = controladorByLGR(
+                    GPlanta, accion, poloDominante(float(Mp), float(Ta)))
             else:
-                to,yo,sal,ti,yi,rI,rO,constantes = controladorByLGR(GPlanta, accion, -2 + 2.5j) # NOTE: No hay tiempos en 0 o menores por lo que solo se ponen unos polos dominantes de referencia
+                # NOTE: No hay tiempos en 0 o menores por lo que solo se ponen unos polos dominantes de referencia
+                to, yo, sal, ti, yi, rI, rO, constantes = controladorByLGR(
+                    GPlanta, accion, -2 + 2.5j)
 
-        rI  =   list(zip(*rI))
+        rI = list(zip(*rI))
         realI = np.real(rI)
         imagI = np.imag(rI)
-        rO  =   list(zip(*rO))
+        rO = list(zip(*rO))
         realO = np.real(rO)
         imagO = np.imag(rO)
-        webC['estado']='inline'
-        webC['accion']=accion
-        valoresEqDif = setValoresEqDif(constantes,accion,T)
+        webC['estado'] = 'inline'
+        webC['accion'] = accion
+        valoresEqDif = setValoresEqDif(constantes, accion, T)
         valoresEqDifJson = json.dumps(valoresEqDif)
         print(str(valoresEqDif))
         #respuesta = "request.form['vel']"
         #respuesta2 = request.form['u']
         # print(GPlanta)
 
-        return render_template('index.html',estado=webC, valoresEqDif=valoresEqDifJson, ta=Ta, mp=Mp, ts=Ts, to=[to.tolist()], yo=[yo.tolist()], planta=GPlantaStrInput, constantes=sal,
-         ti = [ti.tolist()],yi=[yi.tolist()],realI=realI.tolist(),imagI=imagI.tolist(),realO=realO.tolist(),imagO=imagO.tolist())
+        return render_template('index.html', estado=webC, valoresEqDif=valoresEqDifJson, ta=Ta, mp=Mp, ts=Ts, to=[to.tolist()], yo=[yo.tolist()], planta=GPlantaStrInput, constantes=sal,
+                               ti=[ti.tolist()], yi=[yi.tolist()], realI=realI.tolist(), imagI=imagI.tolist(), realO=realO.tolist(), imagO=imagO.tolist())
     else:
-        return render_template('index.html',estado=webC,valoresEqDif='', ta=Ta, mp=Mp, ts=Ts, to=[[1, 2, 3]], yo=[[1, 0, 3]], planta=GPlantaStrInput, constantes="",
-        ti = [[1,1.5,2]],yi=[[3,6,7]], realI=[[2,3,1],[4,2,3],[9,6,2]],imagI=[[4,5,3],[4,8,9],[3,1,0]],realO = [[1,3]],imagO=[[4,5]])
+        return render_template('index.html', estado=webC, valoresEqDif='', ta=Ta, mp=Mp, ts=Ts, to=[[1, 2, 3]], yo=[[1, 0, 3]], planta=GPlantaStrInput, constantes="",
+                               ti=[[1, 1.5, 2]], yi=[[3, 6, 7]], realI=[[2, 3, 1], [4, 2, 3], [9, 6, 2]], imagI=[[4, 5, 3], [4, 8, 9], [3, 1, 0]], realO=[[1, 3]], imagO=[[4, 5]])
 
         # print(len(velocidad))
         # if len(GP) > 0:
@@ -339,12 +383,18 @@ def index():
         #x = int(velocidad)
 
         #salidaHtml = str(velocidad)
-@app.route('/freq', methods=['GET','POST'])
+
+# La siguiente ruta recoge los datos de freq.html, donde se encuentra el metodo de frecuencia,
+# los manda las funciones de frecuencia y regresa los datos para las graficas y las constantes
+# de nuevo a freq.html
+
+
+@app.route('/freq', methods=['GET', 'POST'])
 def freq():
-    webC = {'estado':'none','accion':'PD'}
+    webC = {'estado': 'none', 'accion': 'PD'}
     if request.method == 'POST':
         # Then get the data from the form
-        global GPlantaStrInput,tr,fase,T,Ts
+        global GPlantaStrInput, tr, fase, T, Ts
         GPlantaStrInput = request.form['G']
         GPlantaStr = GPlantaStrInput.split("/")
         num = [float(i) for i in GPlantaStr[0].split(',')]
@@ -359,10 +409,13 @@ def freq():
         Ts = request.form['ts']
         T = float(Ts)
         #respt = controladorByLGR(GPlanta, accion, -2 + 2.5j)
-        if float(tr)>0 and float(fase)>0:
-            sal,Tin, yin,Tout, yout,constantes = controladorByFreq(GPlanta, accion, float(tr),float(fase))
+        if float(tr) > 0 and float(fase) > 0:
+            sal, Tin, yin, Tout, yout, constantes = controladorByFreq(
+                GPlanta, accion, float(tr), float(fase))
         else:
-            sal,Tin, yin,Tout, yout,constantes = controladorByFreq(GPlanta, accion, 5,6) # NOTE: No hay tiempos en 0 o menores por lo que solo se ponen unos polos dominantes de referencia
+            # NOTE: No hay tiempos en 0 o menores por lo que solo se ponen unos polos dominantes de referencia
+            sal, Tin, yin, Tout, yout, constantes = controladorByFreq(
+                GPlanta, accion, 5, 6)
 
         """rI  =   list(zip(*rI))
         realI = np.real(rI)
@@ -371,26 +424,28 @@ def freq():
         realO = np.real(rO)
         imagO = np.imag(rO)"""
 
-        valoresEqDif = setValoresEqDif(constantes,accion,T)
-        webC['estado']='inline'
-        webC['accion']=accion
+        valoresEqDif = setValoresEqDif(constantes, accion, T)
+        webC['estado'] = 'inline'
+        webC['accion'] = accion
         #respuesta = "request.form['vel']"
         #respuesta2 = request.form['u']
         # print(GPlanta)
 
-        return render_template('freq.html',ts=Ts, estado=webC, valoresEqDif=str(valoresEqDif), planta=GPlantaStrInput, tr=tr, fase=fase,constantes=sal,Tin=[Tin.tolist()], yin=[yin.tolist()],Tout=[Tout.tolist()], yout=[yout.tolist()])
+        return render_template('freq.html', ts=Ts, estado=webC, valoresEqDif=str(valoresEqDif), planta=GPlantaStrInput, tr=tr, fase=fase, constantes=sal, Tin=[Tin.tolist()], yin=[yin.tolist()], Tout=[Tout.tolist()], yout=[yout.tolist()])
     else:
-        return render_template('freq.html',ts=Ts, estado=webC, valoresEqDif='', planta=GPlantaStrInput, tr=tr, fase=fase,constantes="",Tin=[[5,2]], yin=[[6,3]],Tout=[[7,4,1],[6,9]], yout=[[5,2,9],[7.89,5]])
+        return render_template('freq.html', ts=Ts, estado=webC, valoresEqDif='', planta=GPlantaStrInput, tr=tr, fase=fase, constantes="", Tin=[[5, 2]], yin=[[6, 3]], Tout=[[7, 4, 1], [6, 9]], yout=[[5, 2, 9], [7.89, 5]])
 
-@app.route('/controlar', methods=['GET','POST'])
+
+@app.route('/controlar', methods=['GET', 'POST'])
 def usoDeControlador():
-    global constantes,accion
+    global constantes, accion
 
-    valoresEqDif= setValoresEqDif(constantes,accion,T)
+    valoresEqDif = setValoresEqDif(constantes, accion, T)
     print(constantes)
     print(accion)
     print(valoresEqDif)
     return render_template('usoDeControlador.html', valoresEqDif=valoresEqDif)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
