@@ -87,7 +87,7 @@
     </center>
   </div>
 
-
+  <script src="{{ url_for('static', filename='setPlots.js') }}" charset="utf-8"></script>
   <script>
      var btn_1 = document.getElementById('activar');
      btn_1.style.display = {{estado|tojson|safe}}.estado;
@@ -101,62 +101,9 @@
      }
 
      function controlUself(){
-       console.log('90');
        document.getElementById('referencia').style.display = 'inline';
        location.replace("/#refOutside");
-       //document.getElementById('refOutside').style.padding-top = '30px';
-       //document.getElementById('referencia').style.margin-right = 0;
      }
-     //document.getElementById("estado").style.display = {{estado|tojson|safe}}.estado;
-     console.log({{estado|tojson|safe}}.estado);
-
-    function setPlot(features){
-      var Data = features.Yset;
-      var XData = features.Xset;
-      var sets = [];
-        for (var ids = 0; ids < Data.length; ids++){
-          let dataSet = Data[ids];
-          let Xset = XData[ids];
-          var dataWFormat = [];
-          for (var i = 0; i < dataSet.length; i++) {
-            var obj = {x:Xset[i],y:dataSet[i]};
-            dataWFormat.push(obj);
-          }
-          var color = features.color;
-          if(ids>0){
-            color = 'rgb('+(90*ids).toString()+','+ (100*ids).toString()+','+ (70*ids).toString()+')';
-          }
-          var plot = {
-            data: dataWFormat,
-            label: features.label,
-            borderColor: color,
-            backgroundColor: color,
-            fill: false
-          };
-          sets.push(plot);
-        }
-
-      return{
-          type : 'line',
-          data : {
-            datasets: sets
-          },
-          options:{
-            responsive: true,
-            title:{
-              display: true,
-              text: features.label
-            },
-            scales: {
-                xAxes: [{
-                    type: 'linear',
-                    position: 'bottom'
-                }]
-            }
-          }
-        };
-    }
-
       window.onload = function() {
         var container = document.querySelector('.container');
 
