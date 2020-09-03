@@ -6,102 +6,25 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.min.js"></script>
     <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed:400,700" rel="stylesheet">
     <title>ControlMaker</title>
-    <style media="screen">
-      body{
-        margin-left : 0;
-        margin-right : 0;
-        margin-bottom: 0;
-        padding: 0px;
-        font-family: 'Roboto Condensed', sans-serif;
-        background-color: #272C34;
-        color: white;
-        }
-      .titulo{
-        padding: 10px;
-        font-family: 'Roboto Condensed 700', sans-serif;
-      }
-      .chart-container {
-    		width: 600px;
-    		margin-left: 40px;
-    		margin-right: 40px;
-    		margin-bottom: 40px;
-    	}
-    	.container {
-    		display: flex;
-    		flex-direction: row;
-    		flex-wrap: wrap;
-    		justify-content: center;
-    	}
-      nav{
-        padding-top:10px;
-      }
-      a:link {
-        color: #FF6383;
-        background-color: transparent;
-        text-decoration: none;
-      }
-
-      a:visited {
-        color: #FF6383;
-        background-color: transparent;
-        text-decoration: none;
-      }
-      .referencia{
-        background-color: #36A2EB;
-        padding-left:  30px;
-        padding-right: 30px;
-        padding-bottom: 10px;
-
-
-      }
-      .diseño{
-        padding-left:  30px;
-        padding-right: 30px;
-      }
-      .refOutside{
-        background-color: #36A2EB;
-      }
-      .tooltip {
-        position: relative;
-        display: inline-block;
-        border-bottom: 1px dotted black;
-      }
-      .tooltip .tooltiptext {
-        visibility: hidden;
-        width: 170px;
-        background-color: white;
-        color: black;
-        text-align: center;
-        border-radius: 6px;
-        padding: 10px ;
-
-        /* Position the tooltip */
-        position: absolute;
-        z-index: 1;
-        top: -5px;
-        left: 105%;
-      }
-      .tooltip:hover .tooltiptext {
-        visibility: visible;
-      }
-    </style>
+    <link rel="stylesheet" href={{ url_for('static', filename='master.css') }}>
   </head>
   <body>
-    <div class="diseño">
+    <nav>
+      <a href="/" class="itemNotSelected navItem">LGR</a>
+      <a class="current navItem">Frecuencia</a>
+    </nav>
 
-      <nav>
-        <right><a href="/">LGR</a></right>
-      </nav>
+    <div class="diseño">
 
       <div class="titulo">
         <h1>Frecuencia</h1>
       </div>
 
       <form class="" method="post">
-        G: <input type="text" name="G" value={{planta}}>
-        Tr: <input type="text" name="tr" value={{tr}}>
-        Fase: <input type="text" name="fase" value={{fase}}>
-        Ts: <input type="text" name="ts" value="{{ts}}">
+        G: <input type="text" name="G" value={{planta}} class="box">
+        Tr: <input type="text" name="tr" value={{tr}} class="box">
+        Fase: <input type="text" name="fase" value={{fase}} class="box">
+        Ts: <input type="text" name="ts" value="{{ts}}" class="box">
         <div class="tooltip">    ?
           <div class="tooltiptext">
             G : Función de Transferencia de la planta <br>
@@ -117,7 +40,7 @@
         <input type="radio" name="action" value="PI" id="PI">PI <br>
         <br>
 
-        <button type="submit" name="button">Diseñar</button>
+        <button type="submit" name="button" class="botonDisenar">Diseñar</button>
       </form>
 
       <div class="">

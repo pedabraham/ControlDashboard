@@ -8,122 +8,37 @@
   <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed:400,700" rel="stylesheet">
   <meta charset="utf-8">
   <title>ControlMaker</title>
-  <style media="screen">
-    body{
-        margin-left : 0;
-        margin-right : 0;
-        margin-bottom: 0;
-        padding: 0px;
-        font-family: 'Roboto Condensed', sans-serif;
-        background-color: #272C34;
-        color: white;
-      }
-    .titulo{
-      padding: 10px;
-      font-family: 'Roboto Condensed 700', sans-serif;
-    }
-    .resultados{
-      font-family: 'Roboto Condensed 400', sans-serif;
-    }
-    nav{
-      padding-top: 10px;
-      padding-left:  30px;
-      padding-right: 30px;
-    }
-    canvas {
-  		-moz-user-select: none;
-  		-webkit-user-select: none;
-  		-ms-user-select: none;
-  	}
-  	.chart-container {
-  		width: 600px;
-  		margin-left: 40px;
-  		margin-right: 40px;
-  		margin-bottom: 40px;
-  	}
-  	.container {
-  		display: flex;
-  		flex-direction: row;
-  		flex-wrap: wrap;
-  		justify-content: center;
-  	}
-    a:link {
-      color: #FF6383;
-      background-color: transparent;
-      text-decoration: none;
-    }
-    a:visited {
-      color: #FF6383;
-      background-color: transparent;
-      text-decoration: none;
-    }
-    .referencia{
-      background-color: #36A2EB;
-      padding-left:  30px;
-      padding-right: 30px;
-      padding-bottom: 10px;
-    }
-    .diseño{
-      padding-left:  30px;
-      padding-right: 30px;
-    }
-
-    .refOutside{
-      background-color: #36A2EB;
-    }
-    .but1{
-      padding: 10px;
-    }
-    .tooltip {
-      position: relative;
-      display: inline-block;
-      border-bottom: 1px dotted black;
-    }
-    .tooltip .tooltiptext {
-      visibility: hidden;
-      width: 170px;
-      background-color: white;
-      color: black;
-      text-align: center;
-      border-radius: 6px;
-      padding: 10px ;
-
-      /* Position the tooltip */
-      position: absolute;
-      z-index: 1;
-      top: -5px;
-      left: 105%;
-    }
-    .tooltip:hover .tooltiptext {
-      visibility: visible;
-    }
-	</style>
+  <link rel="stylesheet" href={{ url_for('static', filename='master.css') }}>
 </head>
 
 <body>
 
-  <nav>
-    <a href="/freq">Frecuencia</a>
-  </nav>
+
+    <nav>
+      <a class="current navItem">LGR</a>
+      <a href="/freq" class="itemNotSelected navItem">Freceuncia</a>
+    </nav>
+
+
 
   <div class="diseño">
 
 
     <div class="titulo">
-      <h1>Lugar geometrico <br> de las raices</h1>
+      <h1>Lugar geométrico <br> de las raices</h1>
 
     </div>
 
     <form class=""  method="post">
-      G: <input type="text" name="G" value={{planta}}>
-      Mp: <input type="text" name="mp" value={{mp}}>
-      Ta: <input type="text" name="ta" value={{ta}}>
-      Ts: <input type="text" name="ts" value="{{ts}}">
+      G: <input type="text" name="G" value={{planta}} class="box">
+      Mp: <input type="text" name="mp" value={{mp}} class="box">
+      Ta: <input type="text" name="ta" value={{ta}} class="box">
+      Ts: <input type="text" name="ts" value="{{ts}}" class="box">
       <div class="tooltip">    ?
         <div class="tooltiptext">
           G = Función de Transferencia de la planta <br>
           Mp = Maximo sobrepico<br>
-          Ta = Tiemp de establecimiento<br>
+          Ta = Tiempo de establecimiento<br>
           Ts = Tiempo de muestreo <br>
         </div>
       </div>
@@ -134,7 +49,7 @@
       <input type="radio" name="action" value="PI" id="PI">PI <br>
       <br>
 
-      <button type="submit" name="button">Diseñar</button>
+      <button type="submit" name="button" class="botonDisenar">Diseñar</button>
     </form>
 
     <div class="resultados">

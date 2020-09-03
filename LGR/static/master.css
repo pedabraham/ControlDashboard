@@ -1,0 +1,125 @@
+body{
+    margin: 0;
+    padding: 0px;
+    font-family: 'Roboto Condensed', sans-serif;
+    background-color: #272C34;
+    color: white;
+  }
+.titulo{
+  padding: 10px;
+  font-family: 'Roboto Condensed 700', sans-serif;
+}
+.resultados{
+  font-family: 'Roboto Condensed 400', sans-serif;
+}
+nav{
+  padding-top: 30px;
+  padding-left:  30px;
+  padding-right: 30px;
+  padding-bottom: 10px;
+}
+canvas {
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+}
+.chart-container {
+  width: 550px;
+
+  margin-left: 40px;
+  margin-right: 40px;
+  margin-bottom: 40px;
+}
+.container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+a:link {
+  color: #FF6383;
+  background-color: transparent;
+  text-decoration: none;
+}
+a:visited {
+  color: #FF6383;
+  background-color: transparent;
+  text-decoration: none;
+}
+.referencia{
+  background-color: #36A2EB;
+  padding-left:  30px;
+  padding-right: 30px;
+  padding-bottom: 10px;
+}
+.diseño{
+  padding-left:  30px;
+  padding-right: 30px;
+}
+
+.refOutside{
+  background-color: #36A2EB;
+}
+.but1{
+  padding: 10px;
+}
+.tooltip {
+  position: relative;
+  display: inline-block;
+  border-bottom: 1px dotted black;
+}
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 170px;
+  background-color: white;
+  color: black;
+  text-align: center;
+  border-radius: 6px;
+  padding: 10px ;
+
+  /* Position the tooltip */
+  position: absolute;
+  z-index: 1;
+  top: -5px;
+  left: 105%;
+}
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+}
+
+.box{
+  border-radius: 5px;
+  border-width: 0px;
+  padding: 3px;
+  font-style:'Roboto Condensed', sans-serif;
+}
+
+.itemNotSelected{
+  background-color: white;
+}
+
+.current{
+  background-color: #272C34;
+  border-radius: 5px; 
+}
+
+nav{
+  background-color: white;
+}
+
+.navItem{
+  padding-left: 20px;
+  padding: 20px;
+}
+
+.botonDisenar{
+
+  background-color:#FF6383;
+  color: white;
+  font-style:'Roboto Condensed', sans-serif;
+  border-radius: 10px;
+  margin: 5px;
+  padding: 5px 15px 5px 15px;
+  border-style: none;
+  font-size: 15px;
+}
