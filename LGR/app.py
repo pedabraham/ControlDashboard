@@ -345,12 +345,12 @@ def index():
         Ts = request.form['ts']
 
         GPlanta = setPlanta(GPlantaStrInput)
+        poloD = poloDominante(float(Mp), float(Ta))
         #respt = controladorByLGR(GPlanta, accion, -2 + 2.5j)
         if len(Ta) > 0 and len(Mp) > 0 and len(Ts) > 0:
             T = float(Ts)
             if float(Mp) > 0 and float(Ta) > 0:
-                to, yo, sal, ti, yi, rI, rO, constantes = controladorByLGR(
-                    GPlanta, accion, poloDominante(float(Mp), float(Ta)))
+                to, yo, sal, ti, yi, rI, rO, constantes = controladorByLGR(GPlanta, accion, poloD)
             else:
                 # NOTE: No hay tiempos en 0 o menores por lo que solo se ponen unos polos dominantes de referencia
                 to, yo, sal, ti, yi, rI, rO, constantes = controladorByLGR(GPlanta, accion, -2 + 2.5j)
