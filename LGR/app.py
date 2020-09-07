@@ -316,6 +316,15 @@ constantes = {
     "kp": 0
 }
 
+def setPlanta(PlantaStr):
+    Planta = PlantaStr.split("/")
+    numerador = [float(i) for i in Planta[0].split(',')]
+    if len(Planta) >= 2:
+        denominador = [float(i) for i in Planta[1].split(',')]
+    else:
+        denominador = [1.0]
+    return control.TransferFunction(numerador, denominador)
+
 # La siguiente ruta recoge los datos del index.html, donde se encuentra el metodo de LGR,
 # los manda las funciones del LGR y regresa los datos para las graficas y las constantes
 # de nuevo al index.html
@@ -328,21 +337,14 @@ def index():
         # Then get the data from the form
 
         global GPlantaStrInput, Mp, Ta, T, constantes, accion, Ts, valoresEqDif
-        GPlantaStrInput = request.form['G']
-        GPlantaStr = GPlantaStrInput.split("/")
 
-        num = [float(i) for i in GPlantaStr[0].split(',')]
-        if len(GPlantaStr) >= 2:
-            den = [float(i) for i in GPlantaStr[1].split(',')]
-        else:
-            den = [1.0]
-        GPlanta = control.TransferFunction(num, den)
-        # print(GPlanta)
+        GPlantaStrInput = request.form['G']
         accion = request.form['action']
         Ta = request.form['ta']
         Mp = request.form['mp']
         Ts = request.form['ts']
 
+        GPlanta = setPlanta(GPlantaStrInput)
         #respt = controladorByLGR(GPlanta, accion, -2 + 2.5j)
         if len(Ta) > 0 and len(Mp) > 0 and len(Ts) > 0:
             T = float(Ts)
@@ -351,8 +353,7 @@ def index():
                     GPlanta, accion, poloDominante(float(Mp), float(Ta)))
             else:
                 # NOTE: No hay tiempos en 0 o menores por lo que solo se ponen unos polos dominantes de referencia
-                to, yo, sal, ti, yi, rI, rO, constantes = controladorByLGR(
-                    GPlanta, accion, -2 + 2.5j)
+                to, yo, sal, ti, yi, rI, rO, constantes = controladorByLGR(GPlanta, accion, -2 + 2.5j)
 
         rI = list(zip(*rI))
         realI = np.real(rI)
@@ -396,17 +397,11 @@ def freq():
         # Then get the data from the form
         global GPlantaStrInput, tr, fase, T, Ts
         GPlantaStrInput = request.form['G']
-        GPlantaStr = GPlantaStrInput.split("/")
-        num = [float(i) for i in GPlantaStr[0].split(',')]
-        if len(GPlantaStr) >= 2:
-            den = [float(i) for i in GPlantaStr[1].split(',')]
-        else:
-            den = [1.0]
-        GPlanta = control.TransferFunction(num, den)
         accion = request.form['action']
         tr = request.form['tr']
         fase = request.form['fase']
         Ts = request.form['ts']
+        GPlanta = setPlanta(GPlantaStrInput)
         T = float(Ts)
         #respt = controladorByLGR(GPlanta, accion, -2 + 2.5j)
         if float(tr) > 0 and float(fase) > 0:
