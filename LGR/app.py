@@ -8,8 +8,6 @@ import json
 
 # Función necesaria en el diseño de controlador mediante LGR
 # Se obtiene con los paramentros de comportamiento deseado
-
-
 def poloDominante(Mp1, ta):
     Mp = Mp1 / 100
     L = np.log(Mp)**2
@@ -29,8 +27,6 @@ def mod(n):
 # y el polo dominante
 # La función regresa los datos para ver graficamente la respuesta al impluso y el LGR
 # ademas de los valores de las constantes necesarias para controlar la planta
-
-
 def controladorByLGR(G, accion, PoloD):
     Tin, yin = control.step_response(G / (G + 1))
     rlistI, klistI = control.root_locus(G, Plot=False)
@@ -245,8 +241,6 @@ def controladorByFreq(planta, accion, tr, fase):
 
 # Funcion necesaria para convertir las constantes como Ti, tiempo integrativo,
 # en valores propios de la ecuacion de diferencia y poder hacer el control discreto
-
-
 def setValoresEqDif(constantes, accion, T):
     if accion == "PD":
         Td = constantes['td']
@@ -302,14 +296,12 @@ tr = '8'
 fase = '60'
 accion = 'PD'
 T = 0.05
-
 valoresEqDif = {
     'a0': 0,
     'a1': 0,
     'a2': 0,
     'b0': 0,
 }
-
 constantes = {
     "ti": 0,
     "td": 0,
@@ -328,8 +320,6 @@ def setPlanta(PlantaStr):
 # La siguiente ruta recoge los datos del index.html, donde se encuentra el metodo de LGR,
 # los manda las funciones del LGR y regresa los datos para las graficas y las constantes
 # de nuevo al index.html
-
-
 @app.route('/', methods=['GET', 'POST'])
 def index():
     webC = {'estado': 'none', 'accion': 'PD'}
@@ -346,6 +336,8 @@ def index():
 
         GPlanta = setPlanta(GPlantaStrInput)
         poloD = poloDominante(float(Mp), float(Ta))
+        # print(GPlanta)
+
         #respt = controladorByLGR(GPlanta, accion, -2 + 2.5j)
         if len(Ta) > 0 and len(Mp) > 0 and len(Ts) > 0:
             T = float(Ts)
@@ -366,9 +358,7 @@ def index():
         valoresEqDif = setValoresEqDif(constantes, accion, T)
         valoresEqDifJson = json.dumps(valoresEqDif)
         print(str(valoresEqDif))
-        #respuesta = "request.form['vel']"
-        #respuesta2 = request.form['u']
-        # print(GPlanta)
+
 
         return render_template('index.html', estado=webC, valoresEqDif=valoresEqDifJson, ta=Ta, mp=Mp, ts=Ts, to=[to.tolist()], yo=[yo.tolist()], planta=GPlantaStrInput, constantes=sal,
                                ti=[ti.tolist()], yi=[yi.tolist()], realI=realI.tolist(), imagI=imagI.tolist(), realO=realO.tolist(), imagO=imagO.tolist())
@@ -376,31 +366,23 @@ def index():
         return render_template('index.html', estado=webC, valoresEqDif='', ta=Ta, mp=Mp, ts=Ts, to=[[1, 2, 3]], yo=[[1, 0, 3]], planta=GPlantaStrInput, constantes="",
                                ti=[[1, 1.5, 2]], yi=[[3, 6, 7]], realI=[[2, 3, 1], [4, 2, 3], [9, 6, 2]], imagI=[[4, 5, 3], [4, 8, 9], [3, 1, 0]], realO=[[1, 3]], imagO=[[4, 5]])
 
-        # print(len(velocidad))
-        # if len(GP) > 0:
-
-        # print(respuesta)
-        #velocidad = respuesta
-        #x = int(velocidad)
-
-        #salidaHtml = str(velocidad)
 
 # La siguiente ruta recoge los datos de freq.html, donde se encuentra el metodo de frecuencia,
 # los manda las funciones de frecuencia y regresa los datos para las graficas y las constantes
 # de nuevo a freq.html
-
-
 @app.route('/freq', methods=['GET', 'POST'])
 def freq():
     webC = {'estado': 'none', 'accion': 'PD'}
     if request.method == 'POST':
         # Then get the data from the form
         global GPlantaStrInput, tr, fase, T, Ts
+
         GPlantaStrInput = request.form['G']
         accion = request.form['action']
-        tr = request.form['tr']
         fase = request.form['fase']
+        tr = request.form['tr']
         Ts = request.form['ts']
+
         GPlanta = setPlanta(GPlantaStrInput)
         T = float(Ts)
         #respt = controladorByLGR(GPlanta, accion, -2 + 2.5j)
@@ -412,19 +394,10 @@ def freq():
             sal, Tin, yin, Tout, yout, constantes = controladorByFreq(
                 GPlanta, accion, 5, 6)
 
-        """rI  =   list(zip(*rI))
-        realI = np.real(rI)
-        imagI = np.imag(rI)
-        rO  =   list(zip(*rO))
-        realO = np.real(rO)
-        imagO = np.imag(rO)"""
-
         valoresEqDif = setValoresEqDif(constantes, accion, T)
         webC['estado'] = 'inline'
         webC['accion'] = accion
-        #respuesta = "request.form['vel']"
-        #respuesta2 = request.form['u']
-        # print(GPlanta)
+
 
         return render_template('freq.html', ts=Ts, estado=webC, valoresEqDif=str(valoresEqDif), planta=GPlantaStrInput, tr=tr, fase=fase, constantes=sal, Tin=[Tin.tolist()], yin=[yin.tolist()], Tout=[Tout.tolist()], yout=[yout.tolist()])
     else:
