@@ -414,6 +414,9 @@ def usoDeControlador():
     print(valoresEqDif)
     return render_template('usoDeControlador.html', valoresEqDif=valoresEqDif)
 
+@app.route('/intro', methods=['GET'])
+def intro():
+    return render_template('intro.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
