@@ -182,17 +182,29 @@ def controladorByFreq(planta, accion, tr, fase):
 
     # Posteriormente se obtienene los angulos de los polos y lo zeros,
     # tal como dice el metodo de frecuencia, para despues obtener wpd, el td y el kp
-    angP = (sum(np.arctan(wc / (-1 * np.array(list(filter(lambda x: x < 0, G.pole())))))) +
-            0.5 * np.pi * len(list(filter(lambda x: x == 0, G.pole()))))
-    angZ = (sum(np.arctan(wc / (-1 * np.array(list(filter(lambda x: x < 0, G.zero())))))) +
-            0.5 * np.pi * len(list(filter(lambda x: x == 0, G.zero()))))
-    wpd = wc / (np.tan(faseR - np.pi + angP - angZ))
+    less_than_0_pole = np.array(list(filter(lambda x: x < 0, G.pole() )))
+    less_than_0_pole_abs = less_than_0_pole * (-1)
+    num_of_poles_equal_0 =len(list(filter(lambda x: x == 0, G.pole())))
+    lesss_than_0_zero = np.array(list(filter(lambda x: x < 0, G.zero())))
+    lesss_than_0_zero_abs = lesss_than_0_zero * (-1)
+    num_of_zeros_equal_0 = len(list(filter(lambda x: x == 0, G.zero())))
+
+    angPoles  = sum(np.arctan(wc / less_than_0_pole_abs)) + 0.5 * np.pi * num_of_poles_equal_0
+    angZeros  = sum(np.arctan(wc / lesss_than_0_zero_abs)) + 0.5 * np.pi * num_of_zeros_equal_0
+    wpd = wc / (np.tan(faseR - np.pi + angPoles  - angZeros ))
     td = 1 / wpd
-    kp = ((((np.prod(np.sqrt((wc / (-1 * np.array(list(filter(lambda x: x < 0, G.pole())))))**2 + 1))) /
-            (np.prod(np.sqrt((wc / (-1 * np.array(list(filter(lambda x: x < 0, np.append(G.zero(), wpd)))))**2 + 1))))) *
-           (np.prod(-1 * np.array(list(filter(lambda x: x < 0, G.pole())))) /
-            (np.prod(-1 * np.array(list(filter(lambda x: x < 0, G.zero())))) * gain))) *
-          ((wc**len(list(filter(lambda x: x == 0, G.pole())))) / (wc**len(list(filter(lambda x: x == 0, G.zero()))))))
+
+    wpdProd = 1
+    if wpd<0:
+        wpdProd = np.sqrt(wc/(-1 * wpd))
+        pass
+
+    prods_of_roots_divided = (np.prod(np.sqrt((wc / less_than_0_pole_abs)**2 + 1)) /
+        ((np.prod(np.sqrt(wc / lesss_than_0_zero_abs)) * wpdProd)**2 + 1))
+    poles_dividedBy_zeros = np.prod(less_than_0_pole_abs) / (np.prod(-1 * lesss_than_0_zero) * gain)
+    wc2_poles_minus_zeros =(wc**num_of_poles_equal_0) / (wc**num_of_zeros_equal_0)
+
+    kp = prods_of_roots_divided * poles_dividedBy_zeros * wc2_poles_minus_zeros
     print(kp)
 
     # Se obtienen los valores de ti, en caso que se hubiera querido usar un PI
