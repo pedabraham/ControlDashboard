@@ -1,4 +1,4 @@
-# Control Discreto
+# Control Dashboard
 
 Hello everyone, I'm just making some web tools to design controllers.
 
